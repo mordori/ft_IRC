@@ -5,5 +5,6 @@ class Server
 private:
 
 public:
+    Server();
 
 };
