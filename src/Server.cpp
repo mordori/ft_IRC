@@ -40,7 +40,6 @@ bool Server::setupServer()
 	if (checklisten == -1)
 		return false;
 
-	// replace clientSocket with epoll fd for multiple clients
 	_epollFd = epoll_creat1(0);
 	if (_epollFd == -1)
 		return false;
