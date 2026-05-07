@@ -13,14 +13,17 @@ Server::Server(int port, const std::string& password)
 Server::~Server() {} // need to delete client here
 
 // setupServer + serverListen
-bool Server::setupServer()
-{
-	_serverSocker = socket(AF_INET, SOCK_STREAM, 0);
+bool Server::setupServer() {
+	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverSocket == -1)
 		return false;
 
+	const int opt = 1;
+	setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+  	setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt));
+
 	// setup Non-blocking
-	int flags = fcntl(fd, F_GETFL, 0);
+	int flags = fcntl(_serverSocket, F_GETFL, 0);
 	if (flags == -1)
 		return false;
 	int status = fcntl(_serverSocket, F_SETFL, flags | O_NONBLOCK);
@@ -40,7 +43,7 @@ bool Server::setupServer()
 	if (checklisten == -1)
 		return false;
 
-	_epollFd = epoll_creat1(0);
+	_epollFd = epoll_create1(0);
 	if (_epollFd == -1)
 		return false;
 
@@ -62,12 +65,51 @@ bool	Server::serverAccept() {
    	if (clientFd == -1) 
 		return false;
 
-	// non-blocking
+	// setup Non-blocking
+	int flags = fcntl(clientFd, F_GETFL, 0);
+	if (flags == -1)
+		return false;
+	int status = fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
+	if (status == -1)
+		return false;
 
-	// epoll
+	struct epoll_event ev;
+	ev.events = EPOLLIN | EPOLLET;  // this needs to double check
+	ev.data.fd = clientFd;
+	int checkEpoll = epoll_ctl(_epollFd, EPOLL_CTL_ADD, clientFd, &ev);
+	if (checkEpoll == -1)
+		return false;
+
+	Client* client = new Client(clientFd);
+	clients[clientFd] = client;
+	std::cout << "New client is added\n" ;
+
+	return true;
 }
 
+void	Server::startServer() {
+	struct epoll_event events[64];
 
+	while (true) {
+		int numEvents = epoll_wait(_epollFd, events, 64, -1);
+
+		if (numEvents == -1)
+			break;
+
+		for (int i = 0; i < numEvents; i++) {
+			const int currentFd = events[i].data.fd;
+        		//const uint32_t currentEvents = events[i].events;
+
+			if (currentFd == _serverSocket) {
+				serverAccept();
+			}
+			else {
+				// serverPrint here and handle disconnection 
+				// Isn't this more like echoing to Client in that terminal not in server terminal?
+			}
+		}
+	}
+}
 
 
 

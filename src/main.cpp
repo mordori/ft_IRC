@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Server.hpp"
 
+// lsof -i :<port>
 int main(int argc, char** argv)
 {
 	if (argc != 3)
@@ -26,6 +27,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	std::cout << "Server started successfully. Port: " << port << ".\n";
+	mastermind.serverAccept();
 	mastermind.startServer();
 	
 	return 0;
