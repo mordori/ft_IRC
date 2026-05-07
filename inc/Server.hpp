@@ -4,12 +4,12 @@
 #include <string>
 #include <cstring> // memset
 #include <unordered_map>
-// #include <vector>
 #include <arpa/inet.h> // inet_ntop
 #include <fcntl.h>
 #include <sys/socket.h>	//for socket
 #include <netinet/in.h> //for socket address
 #include <unistd.h> //for close()
+#include <sys/epoll.h>
 
 class Client
 {
@@ -17,7 +17,7 @@ class Client
         int _clientFd;
 
         Client(int fd) : _clientFd(fd) {}
-        ~Client() { close(fd); }
+        ~Client() { close(_clientFd); }
 };
 
 class Channel {};
@@ -44,5 +44,4 @@ class Server
     	bool	setupServer(); // socket, bind, listen, epoll_create
         bool    serverAccept();
 		void    startServer();
-
 };
