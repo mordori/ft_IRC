@@ -25,20 +25,19 @@ class Channel {};
 class Server
 {
     private:
-		int	_serverSocket;
-		int _epollFd;
-        int _port;
-        std::string _password;
+		int	_serverSocket{};
+		int _epollFd{};
+        uint16_t _port{};
+        std::string _password{};
 
         std::unordered_map<int, Client*> clients;
         std::unordered_map<std::string, Channel*> channels;
 
-        Server() = delete;
         Server(const Server&) = delete;
         Server& operator=(const Server&) = delete;
 
 	public:
-        Server(int port, const std::string& password);
+        Server(uint16_t port, const std::string& password);
         ~Server();
 
     	bool	setupServer(); // socket, bind, listen, epoll_create
