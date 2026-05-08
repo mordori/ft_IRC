@@ -6,7 +6,7 @@ WFLAGS		:=-Wall -Wextra -Werror -Wpedantic -Wunreachable-code -Wshadow \
 			-Wnull-dereference -Wfloat-equal -Wcast-align -Wformat=2 \
 			-Wswitch-enum -Wundef -Wconversion -Wsign-conversion \
 			-Wextra-semi -Wcomma -Wparentheses -Wimplicit-fallthrough \
-			-Wnon-virtual-dtor -Wctor-dtor-privacy -Wtype-limits -Wold-style-cast
+			-Wnon-virtual-dtor -Wctor-dtor-privacy -Wtype-limits
 
 DEFS		:=
 OPTS		:=-O2 -DNDEBUG
@@ -95,5 +95,5 @@ endef
 
 define output
 	@echo "$(YELLOW) [✔] $(NAME) created$(COLOR)"
-	@echo "$(GREEN) [/] usage: $(YELLOW)./$(NAME)$(COLOR)";
+	@echo "$(GREEN) [/] usage: $(YELLOW)./$(NAME) <port> <password>$(COLOR)";
 endef

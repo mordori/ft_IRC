@@ -7,7 +7,7 @@ Dynamic/Private Ports (49152–65535): Temporarily assigned for client connectio
 
 #include "Server.hpp"
 
-Server::Server(int port, const std::string& password)
+Server::Server(uint16_t port, const std::string& password)
 	: _serverSocket(-1), _epollFd(-1), _port(port), _password(password) {}
 
 Server::~Server() {} // need to delete client here
