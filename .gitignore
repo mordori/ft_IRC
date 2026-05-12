@@ -2,3 +2,8 @@ client
 dep/
 ircserv
 obj/
+.vscode/
+.cache/
+compile_commands.json
+*.o
+*.d

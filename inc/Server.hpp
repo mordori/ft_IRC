@@ -1,46 +1,44 @@
 #pragma once
 
-#include <iostream>
+#include <cstdint>
+#include <memory>
 #include <string>
-#include <cstring> // memset
+#include <string_view>
 #include <unordered_map>
-#include <arpa/inet.h> // inet_ntop
-#include <fcntl.h>
-#include <sys/socket.h>	//for socket
-#include <netinet/in.h> //for socket address
-#include <unistd.h> //for close()
-#include <sys/epoll.h>
 
-class Client
-{
-    public:
-        int _clientFd;
+#include "Commands/ICommand.hpp"
 
-        Client(int fd) : _clientFd(fd) {}
-        ~Client() { close(_clientFd); }
-};
+class Channel
+{};
 
-class Channel {};
+class Client;
 
 class Server
 {
-    private:
-		int	_serverSocket{};
-		int _epollFd{};
-        uint16_t _port{};
-        std::string _password{};
+private:
+	int _serverSocket{};
+	int _epollFd{};
+	std::uint16_t _port{};
+	std::string _password;
 
-        std::unordered_map<int, Client*> clients;
-        std::unordered_map<std::string, Channel*> channels;
+	std::unordered_map<int, std::unique_ptr<Client>> _clients;
+	std::unordered_map<std::string, Channel*> _channels;
+	std::unordered_map<std::string_view, std::unique_ptr<ICommand>> _commands;
 
-        Server(const Server&) = delete;
-        Server& operator=(const Server&) = delete;
+public:
+	Server(std::uint16_t port, std::string password);
+	Server(const Server&) = delete;
+	Server(Server&&) = delete;
+	~Server();
 
-	public:
-        Server(uint16_t port, const std::string& password);
-        ~Server();
+	Server& operator=(const Server&) = delete;
+	Server& operator=(Server&&) = delete;
 
-    	bool	setupServer(); // socket, bind, listen, epoll_create
-        bool    serverAccept();
-		void    startServer();
+	bool setupServer();	 // socket, bind, listen, epoll_create
+	bool serverAccept();
+	void startServer();
+	void initCommands();
+	void setEvents(int fd, uint32_t events) const;
+	void handleRequest(Client& client, std::string_view message);
+	void removeClient(int socket);
 };
