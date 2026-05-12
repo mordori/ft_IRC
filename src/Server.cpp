@@ -15,6 +15,7 @@ Dynamic/Private Ports (49152–65535): Temporarily assigned for client connectio
 #include <unistd.h>
 
 #include <array>
+#include <cerrno>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -34,7 +35,13 @@ Server::Server(std::uint16_t port, std::string password)
 	: _serverSocket{ -1 }, _epollFd{ -1 }, _port{ port }, _password{ std::move(password) }
 {}
 
-Server::~Server() {}  // need to delete client here
+Server::~Server()
+{
+	if (_serverSocket != -1)
+		close(_serverSocket);
+	if (_epollFd != -1)
+		close(_epollFd);
+}
 
 // setupServer + serverListen
 bool Server::setupServer()
@@ -72,41 +79,39 @@ bool Server::setupServer()
 	if (_epollFd == -1)
 		return false;
 
-	struct epoll_event ev{};
-	ev.events = EPOLLIN;
-	ev.data.fd = _serverSocket;
-	int checkEpoll = epoll_ctl(_epollFd, EPOLL_CTL_ADD, _serverSocket, &ev);
-	return checkEpoll != -1;
+	initCommands();
+	return addEvents(_serverSocket, EPOLLIN);
 }
 
 bool Server::serverAccept()
 {
-	sockaddr_in clientAddr{};
-	socklen_t len = sizeof(clientAddr);
+	while (true)
+	{
+		sockaddr_in clientAddr{};
+		socklen_t len = sizeof(clientAddr);
+		int clientFd = accept(_serverSocket, (struct sockaddr*)&clientAddr, &len);
+		if (clientFd == -1)
+			return errno == EAGAIN || errno == EWOULDBLOCK;
 
-	int clientFd = accept(_serverSocket, (struct sockaddr*)&clientAddr, &len);
-	if (clientFd == -1)
-		return false;
+		// setup Non-blocking
+		int flags = fcntl(clientFd, F_GETFL, 0);
+		if (flags == -1)
+			return false;
+		int status = fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
+		if (status == -1)
+			return false;
 
-	// setup Non-blocking
-	int flags = fcntl(clientFd, F_GETFL, 0);
-	if (flags == -1)
-		return false;
-	int status = fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
-	if (status == -1)
-		return false;
+		if (!addEvents(clientFd, EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP))
+			return false;
 
-	setEvents(clientFd, EPOLLIN | EPOLLET);
-
-	_clients[clientFd] = std::make_unique<Client>(*this, clientFd);
-	std::cout << "New client is added\n";
-
+		_clients[clientFd] = std::make_unique<Client>(*this, clientFd);
+		std::cout << "New client is added\n";
+	}
 	return true;
 }
 
 void Server::startServer()
 {
-	initCommands();
 	std::array<struct epoll_event, IRC::EVENT_QUEUE_SIZE> events{};
 	while (true)
 	{
@@ -129,19 +134,29 @@ void Server::startServer()
 				if (_clients.contains(fd))
 					_clients[fd]->sendBytes();
 			}
-			if (event.events & (EPOLLHUP | EPOLLERR))
+			if (event.events & (EPOLLHUP | EPOLLERR | EPOLLRDHUP))
+			{
 				removeClient(fd);
+				continue;
+			}
 		}
 	}
 }
 
-void Server::setEvents(int fd, uint32_t events) const
+bool Server::addEvents(int fd, uint32_t events) const
 {
 	struct epoll_event ev{};
 	ev.data.fd = fd;
 	ev.events = events;
-	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &ev) == -1)
-		;  // TODO: Handle error
+	return epoll_ctl(_epollFd, EPOLL_CTL_ADD, fd, &ev) == 0;
+}
+
+bool Server::modEvents(int fd, uint32_t events) const
+{
+	struct epoll_event ev{};
+	ev.data.fd = fd;
+	ev.events = events;
+	return epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &ev) == 0;
 }
 
 void Server::initCommands()

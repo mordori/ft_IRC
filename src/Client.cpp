@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include <array>
+#include <cerrno>
 #include <cstddef>
 #include <span>
 #include <string>
@@ -46,7 +47,8 @@ void Client::receiveBytes()
 		}
 		else
 		{
-			// TODO: Handle error
+			if (errno != EAGAIN && errno != EWOULDBLOCK)
+				_server.removeClient(_socket);
 			break;
 		}
 	}
@@ -55,7 +57,7 @@ void Client::receiveBytes()
 void Client::sendMessage(std::string_view message)
 {
 	_bufferOut.append(message.data(), message.size());
-	_server.setEvents(_socket, EPOLLIN | EPOLLOUT | EPOLLET);
+	_server.modEvents(_socket, EPOLLIN | EPOLLOUT | EPOLLET);
 	sendBytes();
 }
 
@@ -63,7 +65,7 @@ void Client::sendBytes()
 {
 	if (_bufferOut.empty())
 	{
-		_server.setEvents(_socket, EPOLLIN | EPOLLET);
+		_server.modEvents(_socket, EPOLLIN | EPOLLET | EPOLLRDHUP);
 		return;
 	}
 	while (!_bufferOut.empty())
@@ -73,8 +75,11 @@ void Client::sendBytes()
 			_bufferOut.erase(0, static_cast<std::size_t>(bytesSent));
 		else if (bytesSent == -1)
 		{
-			// TODO: Handle error
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				return;
+			_server.removeClient(_socket);
+			return;
 		}
 	}
-	_server.setEvents(_socket, EPOLLIN | EPOLLET);
+	_server.modEvents(_socket, EPOLLIN | EPOLLET | EPOLLRDHUP);
 }

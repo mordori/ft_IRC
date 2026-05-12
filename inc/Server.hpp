@@ -38,7 +38,8 @@ public:
 	bool serverAccept();
 	void startServer();
 	void initCommands();
-	void setEvents(int fd, uint32_t events) const;
+	bool addEvents(int fd, uint32_t events) const;
+	bool modEvents(int fd, uint32_t events) const;
 	void handleRequest(Client& client, std::string_view message);
 	void removeClient(int socket);
 };

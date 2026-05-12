@@ -16,6 +16,8 @@ Checks: >
   -readability-braces-around-statements,
   -modernize-use-trailing-return-type,
   -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -readability-identifier-length,
+  -readability-implicit-bool-conversion,
 
 # FORCE clang-tidy to report warnings found in header files
 HeaderFilterRegex: '.*\.hpp$'
