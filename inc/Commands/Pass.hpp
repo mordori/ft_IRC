@@ -22,7 +22,7 @@ public:
 			client.numericReply(ERR_ALREADYREGISTERED, ":You may not reregister");
 			return;
 		}
-		if (params[0] != _server.getPassword())
+		if (params[0] != server.getPassword())
 		{
 			client.numericReply(ERR_PASSWDMISMATCH, ":Password incorrect");
 			return;
