@@ -13,6 +13,7 @@
 #include <string_view>
 
 #include "../inc/Server.hpp"
+#include "../inc/Utils.hpp"
 
 Client::~Client()
 {
@@ -54,9 +55,11 @@ void Client::receiveBytes()
 	}
 }
 
+// added "\r\n" - IRC messages should terminated with \r\n (CRLF)
 void Client::sendMessage(std::string_view message)
 {
 	_bufferOut.append(message.data(), message.size());
+	_bufferOut.append("\r\n");
 	_server.modEvents(_socket, EPOLLIN | EPOLLOUT | EPOLLET);
 	sendBytes();
 }
@@ -82,4 +85,20 @@ void Client::sendBytes()
 		}
 	}
 	_server.modEvents(_socket, EPOLLIN | EPOLLET | EPOLLRDHUP);
+}
+
+// : <servername> <numeric> <nickname> <messages>
+void Client::numericReply(std::string_view numeric, std::string_view msg)
+{
+	std::string nick = _nickname.empty() ? "*" : _nickname;
+
+	std::string numericMsg = ":" + _server.getHostame() + " " + std::string(numeric) + " " + nick + " " + std::string(msg);
+
+	sendMessage(numericMsg);
+}
+
+// IRC User PrefiX: Nickname!username@hostname (e.g., :Alice!alice@example.com PRIVMSG)
+std::string getUserPrefix() const
+{
+	return (":" + _nickname + "!" + _username + "@" + _hostname);
 }

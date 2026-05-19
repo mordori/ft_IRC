@@ -10,5 +10,5 @@ struct CommandRequest
 
 	explicit CommandRequest(std::string_view message);
 
-	[[nodiscard]] bool isValid() const { return name.empty(); }
+	[[nodiscard]] bool isValid() const { return !name.empty(); }
 };

@@ -12,6 +12,13 @@ private:
 	int _socket{ -1 };
 	std::string _bufferIn;
 	std::string _bufferOut;
+	std::string _nickname;
+	std::string _realname;
+	std::string _username;
+	std::string _hostname;
+	std::string _password;
+	bool _isRegisterd = false;
+	bool _isPassGiven = false;
 
 public:
 	Client(Server& server, int socket) : _server{ server }, _socket{ socket } {}
@@ -25,5 +32,21 @@ public:
 	void receiveBytes();
 	void sendBytes();
 	void sendMessage(std::string_view message);
+	void numericReply(int numeric, std::string_view msg);
+
 	[[nodiscard]] int getSocket() const { return _socket; }
+	const std::string& getNickname() const { return _nickname; }
+	const std::string& getUsername() const { return _username; }
+	const std::string& getRealname() const { return _realname; }
+        const std::string& getHostname() const { return _hostname; }
+	bool isRegistered() const { return _isRegisterd; }
+	bool isPassGiven() const { return _isPassGiven; }
+
+        void setHostname(std::string_view host) { _hostname = host; }
+        void setNickname(std::string_view nick) { _nickname = nick; }
+	void setUsername(std::string_view user ) { _username = user; } 
+	void setRealname(std::string_view real) { _realname = real; }
+	void setPassGiven(bool pass) { _isPassGiven = pass; }
+	
+	std::string getUserPrefix() const;
 };

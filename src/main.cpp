@@ -37,7 +37,6 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	std::cout << "Server started successfully. Port: " << port << ".\n";
-	mastermind.serverAccept();
 	mastermind.startServer();
 	return 0;
 }
