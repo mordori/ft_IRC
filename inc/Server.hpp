@@ -20,6 +20,7 @@ private:
 	int _epollFd{};
 	std::uint16_t _port{};
 	std::string _password;
+	std::string _hostname;
 
 	std::unordered_map<int, std::unique_ptr<Client>> _clients;
 	std::unordered_map<std::string, Channel*> _channels;
@@ -42,4 +43,7 @@ public:
 	bool modEvents(int fd, uint32_t events) const;
 	void handleRequest(Client& client, std::string_view message);
 	void removeClient(int socket);
+
+	const std::string& getPassword() const { return _password; }
+        std::string_view getHostname();
 };
