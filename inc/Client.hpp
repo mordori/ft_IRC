@@ -32,7 +32,7 @@ public:
 	void receiveBytes();
 	void sendBytes();
 	void sendMessage(std::string_view message);
-	void numericReply(int numeric, std::string_view msg);
+	void numericReply(std::string_view numeric, std::string_view msg);
 
 	[[nodiscard]] int getSocket() const { return _socket; }
 	const std::string& getNickname() const { return _nickname; }

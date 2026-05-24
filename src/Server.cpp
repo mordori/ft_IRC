@@ -171,14 +171,14 @@ void Server::handleRequest(Client& client, std::string_view message)
 		return;
 	if (auto iter = _commands.find(request.name); iter != _commands.end())
 		iter->second->execute(client, *this, request.params);
-	else
+	//else
 		;  // TODO: no such command
 }
 
 void Server::removeClient(int socket)
 {
 	// Remove the socket from the epoll
-	epoll_ctl(_epollFd, EPOLL_CTL_DEL, clientFd, nullptr);
+	epoll_ctl(_epollFd, EPOLL_CTL_DEL, socket, nullptr);
 
 	// Here inform that the client has left the channel and remove client from the channel and destroy channel if no one left
 
@@ -198,4 +198,14 @@ std::string_view Server::getHostname()
 			_hostname = "localhost";
 	}
 	return _hostname;	
+}
+
+bool Server::isNickInUse(std::string_view nick) const
+{
+	for (const auto& pair : _clients)
+	{
+		if (pair.second->getNickname() == nick)
+			return true;
+	}
+	return false;
 }

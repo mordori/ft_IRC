@@ -13,6 +13,10 @@ namespace IRC
 	constexpr std::string_view RPL_CREATED = "003";
 	constexpr std::string_view RPL_MYINFO = "004";
 
+	constexpr std::string_view ERR_NONICKNAMEGIVEN = "431";
+	constexpr std::string_view ERR_ERRONEUSNICKNAME = "432";
+	constexpr std::string_view ERR_NICKNAMEINUSE = "433";
+
 	constexpr std::string_view ERR_NEEDMOREPARAMS = "461";
 	constexpr std::string_view ERR_ALREADYREGISTERED = "462";
 	constexpr std::string_view ERR_PASSWDMISMATCH = "464";
