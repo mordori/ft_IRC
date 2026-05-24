@@ -43,7 +43,8 @@ public:
 	bool modEvents(int fd, uint32_t events) const;
 	void handleRequest(Client& client, std::string_view message);
 	void removeClient(int socket);
-
+	
 	const std::string& getPassword() const { return _password; }
         std::string_view getHostname();
+	bool isNickInUse(std::string_view nick) const;
 };

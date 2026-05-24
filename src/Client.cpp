@@ -11,6 +11,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <sstream>
 
 #include "../inc/Server.hpp"
 #include "../inc/Utils.hpp"
@@ -92,13 +93,13 @@ void Client::numericReply(std::string_view numeric, std::string_view msg)
 {
 	std::string nick = _nickname.empty() ? "*" : _nickname;
 
-	std::string numericMsg = ":" + _server.getHostame() + " " + std::string(numeric) + " " + nick + " " + std::string(msg);
+	std::string numericMsg = std::string(":") + std::string(_server.getHostname()) + " " + std::string(numeric) + " " + std::string(nick) + " " + std::string(msg);
 
 	sendMessage(numericMsg);
 }
 
 // IRC User PrefiX: Nickname!username@hostname (e.g., :Alice!alice@example.com PRIVMSG)
-std::string getUserPrefix() const
+std::string Client::getUserPrefix() const
 {
 	return (":" + _nickname + "!" + _username + "@" + _hostname);
 }

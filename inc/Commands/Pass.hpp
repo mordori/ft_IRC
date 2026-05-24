@@ -14,17 +14,17 @@ public:
 	{
 		if (params.empty())
 		{
-			client.numericReply(ERR_NEEDMOREPARAMS, "PASS :Not enough parameters");
+			client.numericReply(IRC::ERR_NEEDMOREPARAMS, "PASS :Not enough parameters");
 			return;
 		}
 		if (!client.isRegistered())
 		{
-			client.numericReply(ERR_ALREADYREGISTERED, ":You may not reregister");
+			client.numericReply(IRC::ERR_ALREADYREGISTERED, ":You may not reregister");
 			return;
 		}
 		if (params[0] != server.getPassword())
 		{
-			client.numericReply(ERR_PASSWDMISMATCH, ":Password incorrect");
+			client.numericReply(IRC::ERR_PASSWDMISMATCH, ":Password incorrect");
 			return;
 		}
 		client.setPassGiven(true);
