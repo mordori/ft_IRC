@@ -1,9 +1,12 @@
 #pragma once
 
+#include <cctype>
+#include <string>
 #include <string_view>
 #include <vector>
 
 #include "../Client.hpp"
+#include "../Server.hpp"
 #include "../Utils.hpp"
 #include "ICommand.hpp"
 
@@ -25,8 +28,8 @@ private:
 				return false;
 		}
 		return true;
-
 	}
+
 public:
 	void execute(Client& client, Server& server, const std::vector<std::string_view>& params) override
 	{
@@ -47,7 +50,7 @@ public:
 			client.numericReply(IRC::ERR_ERRONEUSNICKNAME, std::string(nick) + ":Erroneus nickname");
 			return;
 		}
-		
+
 		if (server.isNickInUse(nick))
 		{
 			client.numericReply(IRC::ERR_NICKNAMEINUSE, std::string(nick) + ":Nickname is already in use");
@@ -56,7 +59,7 @@ public:
 		std::string oldPrefix = client.getUserPrefix();
 		client.setNickname(nick);
 
-		// Here client registration and broadcasting 
+		// Here client registration and broadcasting
 		// check if USER is also set if both are set, set _isRegistered = true and send the 001 RPL_WELCOME message
 	}
 };

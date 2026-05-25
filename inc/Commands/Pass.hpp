@@ -4,9 +4,9 @@
 #include <vector>
 
 #include "../Client.hpp"
+#include "../Server.hpp"
 #include "../Utils.hpp"
 #include "ICommand.hpp"
-#include "../Server.hpp"
 
 class Pass : public ICommand
 {
@@ -18,7 +18,7 @@ public:
 			client.numericReply(IRC::ERR_NEEDMOREPARAMS, "PASS :Not enough parameters");
 			return;
 		}
-		if (!client.isRegistered())
+		if (client.isRegistered())
 		{
 			client.numericReply(IRC::ERR_ALREADYREGISTERED, ":You may not reregister");
 			return;
