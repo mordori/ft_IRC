@@ -6,6 +6,7 @@
 #include "../Client.hpp"
 #include "../Utils.hpp"
 #include "ICommand.hpp"
+#include "../Server.hpp"
 
 class Pass : public ICommand
 {
