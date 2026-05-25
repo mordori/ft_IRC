@@ -6,12 +6,11 @@
 #include <unistd.h>
 
 #include <array>
-#include <cerrno>
 #include <cstddef>
 #include <span>
+#include <sstream>
 #include <string>
 #include <string_view>
-#include <sstream>
 
 #include "../inc/Server.hpp"
 #include "../inc/Utils.hpp"
@@ -49,8 +48,7 @@ void Client::receiveBytes()
 		}
 		else
 		{
-			if (errno != EAGAIN && errno != EWOULDBLOCK)
-				_server.removeClient(_socket);
+			_server.removeClient(_socket);
 			break;
 		}
 	}
@@ -79,9 +77,9 @@ void Client::sendBytes()
 			_bufferOut.erase(0, static_cast<std::size_t>(bytesSent));
 		else if (bytesSent == -1)
 		{
-			if (errno == EAGAIN || errno == EWOULDBLOCK)
-				return;
-			_server.removeClient(_socket);
+			// ????
+			//
+			// _server.removeClient(_socket);
 			return;
 		}
 	}
@@ -93,13 +91,11 @@ void Client::numericReply(std::string_view numeric, std::string_view msg)
 {
 	std::string nick = _nickname.empty() ? "*" : _nickname;
 
-	std::string numericMsg = std::string(":") + std::string(_server.getHostname()) + " " + std::string(numeric) + " " + std::string(nick) + " " + std::string(msg);
+	std::string numericMsg = std::string(":") + std::string(_server.getHostname()) + " " + std::string(numeric) + " " +
+							 std::string(nick) + " " + std::string(msg);
 
 	sendMessage(numericMsg);
 }
 
 // IRC User PrefiX: Nickname!username@hostname (e.g., :Alice!alice@example.com PRIVMSG)
-std::string Client::getUserPrefix() const
-{
-	return (":" + _nickname + "!" + _username + "@" + _hostname);
-}
+std::string Client::getUserPrefix() const { return (":" + _nickname + "!" + _username + "@" + _hostname); }

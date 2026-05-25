@@ -1,15 +1,14 @@
 #include "../inc/Server.hpp"
 
+#include <arpa/inet.h>
 #include <asm-generic/socket.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 
 #include <array>
-#include <cerrno>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -21,9 +20,17 @@
 
 #include "../inc/Client.hpp"
 #include "../inc/CommandRequest.hpp"
+#include "../inc/Commands/Invite.hpp"
 #include "../inc/Commands/Join.hpp"
+#include "../inc/Commands/Kick.hpp"
+#include "../inc/Commands/Mode.hpp"
 #include "../inc/Commands/Nick.hpp"
+#include "../inc/Commands/Part.hpp"
 #include "../inc/Commands/Pass.hpp"
+#include "../inc/Commands/Ping.hpp"
+#include "../inc/Commands/Privmsg.hpp"
+#include "../inc/Commands/Topic.hpp"
+#include "../inc/Commands/User.hpp"
 #include "../inc/Utils.hpp"
 
 Server::Server(std::uint16_t port, std::string password)
@@ -50,10 +57,7 @@ bool Server::setupServer()
 	setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt));
 
 	// setup Non-blocking
-	int flags = fcntl(_serverSocket, F_GETFL, 0);
-	if (flags == -1)
-		return false;
-	int status = fcntl(_serverSocket, F_SETFL, flags | O_NONBLOCK);
+	int status = fcntl(_serverSocket, F_SETFL, O_NONBLOCK);
 	if (status == -1)
 		return false;
 
@@ -80,33 +84,28 @@ bool Server::setupServer()
 
 bool Server::serverAccept()
 {
-	while (true)
-	{
-		sockaddr_in clientAddr{};
-		socklen_t len = sizeof(clientAddr);
-	
-		int clientFd = accept(_serverSocket, reinterpret_cast<sockaddr*>(&clientAddr), &len); // added reinterpret_cast to make casting safer and more explicit
-		if (clientFd == -1)
-			return errno == EAGAIN || errno == EWOULDBLOCK;
+	sockaddr_in clientAddr{};
+	socklen_t len = sizeof(clientAddr);
 
-		char host[INET_ADDRSTRLEN];
-		if (inet_ntop(AF_INET, &clientAddr.sin_addr, host, INET_ADDRSTRLEN) == nullptr)
-			return false;
+	int clientFd = accept(_serverSocket, reinterpret_cast<sockaddr*>(&clientAddr),
+						  &len);  // added reinterpret_cast to make casting safer and more explicit
+	if (clientFd == -1)
+		return false;
 
-		int flags = fcntl(clientFd, F_GETFL, 0);
-		if (flags == -1)
-			return false;
-		int status = fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
-		if (status == -1)
-			return false;
+	char host[INET_ADDRSTRLEN];
+	if (inet_ntop(AF_INET, &clientAddr.sin_addr, host, INET_ADDRSTRLEN) == nullptr)
+		return false;
 
-		if (!addEvents(clientFd, EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP))
-			return false;
+	int status = fcntl(clientFd, F_SETFL, O_NONBLOCK);
+	if (status == -1)
+		return false;
 
-		_clients[clientFd] = std::make_unique<Client>(*this, clientFd);
-		_clients[clientFd]->setHostname(host);
-		std::cout << "New client is added\n";
-	}
+	if (!addEvents(clientFd, EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP))
+		return false;
+
+	_clients[clientFd] = std::make_unique<Client>(*this, clientFd);
+	_clients[clientFd]->setHostname(host);
+	std::cout << "New client is added\n";
 	return true;
 }
 
@@ -125,7 +124,7 @@ void Server::startServer()
 			if (event.events & EPOLLIN)
 			{
 				if (fd == _serverSocket)
-					serverAccept();
+					serverAccept();	 // check return value?
 				else if (_clients.contains(fd))
 					_clients[fd]->receiveBytes();
 			}
@@ -161,9 +160,17 @@ bool Server::modEvents(int fd, uint32_t events) const
 
 void Server::initCommands()
 {
+	_commands["INVITE"] = std::make_unique<Invite>();
 	_commands["JOIN"] = std::make_unique<Join>();
+	_commands["KICK"] = std::make_unique<Kick>();
+	_commands["MODE"] = std::make_unique<Mode>();
 	_commands["NICK"] = std::make_unique<Nick>();
+	_commands["PART"] = std::make_unique<Part>();
 	_commands["PASS"] = std::make_unique<Pass>();
+	_commands["PING"] = std::make_unique<Ping>();
+	_commands["PRIVMSG"] = std::make_unique<Privmsg>();
+	_commands["TOPIC"] = std::make_unique<Topic>();
+	_commands["USER"] = std::make_unique<User>();
 }
 
 void Server::handleRequest(Client& client, std::string_view message)
@@ -174,7 +181,7 @@ void Server::handleRequest(Client& client, std::string_view message)
 	if (auto iter = _commands.find(request.name); iter != _commands.end())
 		iter->second->execute(client, *this, request.params);
 	//else
-		;  // TODO: no such command
+	;  // TODO: no such command
 }
 
 void Server::removeClient(int socket)
@@ -199,7 +206,7 @@ std::string_view Server::getHostname()
 		else
 			_hostname = "localhost";
 	}
-	return _hostname;	
+	return _hostname;
 }
 
 bool Server::isNickInUse(std::string_view nick) const

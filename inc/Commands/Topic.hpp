@@ -6,7 +6,7 @@
 #include "../Client.hpp"
 #include "ICommand.hpp"
 
-class Join : public ICommand
+class Topic : public ICommand
 {
 public:
 	void execute(Client& client, Server& server, const std::vector<std::string_view>& params) override

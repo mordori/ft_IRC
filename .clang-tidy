@@ -18,6 +18,11 @@ Checks: >
   -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
   -readability-identifier-length,
   -readability-implicit-bool-conversion,
+  -cppcoreguidelines-avoid-c-arrays,
+  -bugprone-easily-swappable-parameters,
+  -readability-use-anyofallof,
+  -modernize-avoid-c-arrays,
+
 
 # FORCE clang-tidy to report warnings found in header files
 HeaderFilterRegex: '.*\.hpp$'

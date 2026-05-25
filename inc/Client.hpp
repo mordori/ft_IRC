@@ -35,18 +35,18 @@ public:
 	void numericReply(std::string_view numeric, std::string_view msg);
 
 	[[nodiscard]] int getSocket() const { return _socket; }
-	const std::string& getNickname() const { return _nickname; }
-	const std::string& getUsername() const { return _username; }
-	const std::string& getRealname() const { return _realname; }
-        const std::string& getHostname() const { return _hostname; }
-	bool isRegistered() const { return _isRegisterd; }
-	bool isPassGiven() const { return _isPassGiven; }
+	[[nodiscard]] const std::string& getNickname() const { return _nickname; }
+	[[nodiscard]] const std::string& getUsername() const { return _username; }
+	[[nodiscard]] const std::string& getRealname() const { return _realname; }
+	[[nodiscard]] const std::string& getHostname() const { return _hostname; }
+	[[nodiscard]] bool isRegistered() const { return _isRegisterd; }
+	[[nodiscard]] bool isPassGiven() const { return _isPassGiven; }
 
-        void setHostname(std::string_view host) { _hostname = host; }
-        void setNickname(std::string_view nick) { _nickname = nick; }
-	void setUsername(std::string_view user ) { _username = user; } 
+	void setHostname(std::string_view host) { _hostname = host; }
+	void setNickname(std::string_view nick) { _nickname = nick; }
+	void setUsername(std::string_view user) { _username = user; }
 	void setRealname(std::string_view real) { _realname = real; }
 	void setPassGiven(bool pass) { _isPassGiven = pass; }
-	
+
 	std::string getUserPrefix() const;
 };

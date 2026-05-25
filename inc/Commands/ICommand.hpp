@@ -9,7 +9,7 @@ class Server;
 class ICommand
 {
 public:
-    ICommand() = default;
+	ICommand() = default;
 	ICommand(const ICommand&) = delete;
 	ICommand(ICommand&&) = delete;
 	virtual ~ICommand() = default;
