@@ -9,6 +9,11 @@ namespace IRC
 	constexpr std::uint16_t PORT_MIN = 1024;
 	constexpr std::size_t EVENT_QUEUE_SIZE = 64;
 
+	constexpr std::string_view SERVER_NAME = "ft_irc.mastermind";
+	constexpr std::string_view SERVER_VERSION = "mastermind-1.0";
+	constexpr std::string_view AVAILABLE_USER_MODES = "";
+	constexpr std::string_view AVAILABLE_CHANNEL_MODES = "itkol";
+
 	constexpr std::string_view RPL_WELCOME = "001";
 	constexpr std::string_view RPL_YOURHOST = "002";
 	constexpr std::string_view RPL_CREATED = "003";

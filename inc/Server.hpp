@@ -21,9 +21,10 @@ private:
 	std::uint16_t _port{};
 	std::string _password;
 	std::string _hostname;
+	std::string _launchTime;
 
 	std::unordered_map<int, std::unique_ptr<Client>> _clients;
-	std::unordered_map<std::string, Channel*> _channels;
+	std::unordered_map<std::string, std::unique_ptr<Channel>> _channels;
 	std::unordered_map<std::string_view, std::unique_ptr<ICommand>> _commands;
 
 public:
@@ -46,5 +47,8 @@ public:
 
 	const std::string& getPassword() const { return _password; }
 	std::string_view getHostname();
+	const std::string& getLaunchTime() const { return _launchTime; }
 	bool isNickInUse(std::string_view nick) const;
+	void registerClient(Client& client);
+	void broadcastToChannels(Client& client, std::string& msg);
 };
