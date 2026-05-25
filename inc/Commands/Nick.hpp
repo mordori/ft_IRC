@@ -33,7 +33,7 @@ private:
 public:
 	void execute(Client& client, Server& server, const std::vector<std::string_view>& params) override
 	{
-		if (!server.getPassword().empty() && !client.isPassGiven())
+		if (!client.isPassGiven())
 		{
 			client.numericReply(IRC::ERR_PASSWDMISMATCH, ":Password incorrect or missing");
 			return;
@@ -47,19 +47,25 @@ public:
 
 		if (!isNickValid(nick))
 		{
-			client.numericReply(IRC::ERR_ERRONEUSNICKNAME, std::string(nick) + ":Erroneus nickname");
+			client.numericReply(IRC::ERR_ERRONEUSNICKNAME, std::string(nick) + " :Erroneus nickname");
 			return;
 		}
 
 		if (server.isNickInUse(nick))
 		{
-			client.numericReply(IRC::ERR_NICKNAMEINUSE, std::string(nick) + ":Nickname is already in use");
+			client.numericReply(IRC::ERR_NICKNAMEINUSE, std::string(nick) + " :Nickname is already in use");
 			return;
 		}
 		std::string oldPrefix = client.getUserPrefix();
 		client.setNickname(nick);
 
-		// Here client registration and broadcasting
-		// check if USER is also set if both are set, set _isRegistered = true and send the 001 RPL_WELCOME message
+		if (client.isRegistered())
+		{
+			std::string msg = oldPrefix + " NICK :" + std::string(nick);
+			client.sendMessage(msg);
+			server.broadcastToChannels(client, msg);
+		}
+		else
+			server.registerClient(client);
 	}
 };

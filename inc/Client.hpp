@@ -19,6 +19,7 @@ private:
 	std::string _password;
 	bool _isRegisterd = false;
 	bool _isPassGiven = false;
+	bool _isDisconnected = false;
 
 public:
 	Client(Server& server, int socket) : _server{ server }, _socket{ socket } {}
@@ -41,12 +42,16 @@ public:
 	[[nodiscard]] const std::string& getHostname() const { return _hostname; }
 	[[nodiscard]] bool isRegistered() const { return _isRegisterd; }
 	[[nodiscard]] bool isPassGiven() const { return _isPassGiven; }
+	[[nodiscard]] bool isDisconnected() const { return _isDisconnected; }
 
 	void setHostname(std::string_view host) { _hostname = host; }
 	void setNickname(std::string_view nick) { _nickname = nick; }
 	void setUsername(std::string_view user) { _username = user; }
 	void setRealname(std::string_view real) { _realname = real; }
 	void setPassGiven(bool pass) { _isPassGiven = pass; }
+	void setRegistered(bool registered) { _isRegisterd = registered; }
+	void setDisconnect(bool status) { _isDisconnected = status; }
 
 	std::string getUserPrefix() const;
+	
 };

@@ -17,6 +17,10 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <sstream>
+#include <iomanip>
+#include <ctime>
+#include <unordered_set>
 
 #include "../inc/Client.hpp"
 #include "../inc/CommandRequest.hpp"
@@ -35,7 +39,15 @@
 
 Server::Server(std::uint16_t port, std::string password)
 	: _serverSocket{ -1 }, _epollFd{ -1 }, _port{ port }, _password{ std::move(password) }
-{}
+{
+	auto t = std::time(nullptr);
+	auto tm = *std::localtime(&t);
+
+	std::ostringstream oss;
+	oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
+
+	_launchTime = oss.str();
+}
 
 Server::~Server()
 {
@@ -135,8 +147,12 @@ void Server::startServer()
 			}
 			if (event.events & (EPOLLHUP | EPOLLERR | EPOLLRDHUP))
 			{
+				if (_clients.contains(fd))
+					_clients[fd]->setDisconnect(true);
+			}
+			if (_clients.contains(fd) && _clients[fd]->isDisconnected())
+			{
 				removeClient(fd);
-				continue;
 			}
 		}
 	}
@@ -217,4 +233,26 @@ bool Server::isNickInUse(std::string_view nick) const
 			return true;
 	}
 	return false;
+}
+
+void Server::registerClient(Client& client)
+{
+	if (client.isRegistered())
+		return;
+	if (!client.getNickname().empty() && !client.getUsername().empty())
+	{
+		client.setRegistered(true);
+		client.numericReply(IRC::RPL_WELCOME, ":Welcome to the IRC Network, " + client.getUserPrefix());
+		client.numericReply(IRC::RPL_YOURHOST, ":Your host is " + std::string(IRC::SERVER_NAME) + ", running version " + std::string(IRC::SERVER_VERSION));
+		client.numericReply(IRC::RPL_CREATED, ":This server was created " + getLaunchTime());
+		client.numericReply(IRC::RPL_MYINFO, std::string(IRC::SERVER_NAME) + " " + std::string(IRC::SERVER_VERSION) + " " + std::string(IRC::AVAILABLE_USER_MODES) + " " + std::string(IRC::AVAILABLE_CHANNEL_MODES));
+	}
+}
+
+void Server::broadcastToChannels(Client& client, std::string& msg)
+{
+	(void)client;
+   	(void)msg;
+	// unordered_set to loop through unordered_map channel
+	//for (const auto& [channelName, channelPtr] : _channels)
 }
