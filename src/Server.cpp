@@ -23,6 +23,7 @@
 #include "../inc/CommandRequest.hpp"
 #include "../inc/Commands/Join.hpp"
 #include "../inc/Commands/Nick.hpp"
+#include "../inc/Commands/Pass.hpp"
 #include "../inc/Utils.hpp"
 
 Server::Server(std::uint16_t port, std::string password)
@@ -162,6 +163,7 @@ void Server::initCommands()
 {
 	_commands["JOIN"] = std::make_unique<Join>();
 	_commands["NICK"] = std::make_unique<Nick>();
+	_commands["PASS"] = std::make_unique<Pass>();
 }
 
 void Server::handleRequest(Client& client, std::string_view message)
