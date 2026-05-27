@@ -9,8 +9,7 @@
 
 #include "Commands/ICommand.hpp"
 
-class Channel
-{};
+class Channel;
 
 class Client;
 

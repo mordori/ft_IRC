@@ -21,10 +21,10 @@ private:
 	std::unordered_map<int, Client*> _invited; 
 
 public:
-	Channel(std::string_view name);
+	Channel(std::string_view name) : _name{ name } {}
 	Channel(const Channel&) = delete;
 	Channel(Channel&&) = delete;
-	~Channel();
+	~Channel() = default ;
 
 	Channel& operator=(const Channel&) = delete;
 	Channel& operator=(Channel&&) = delete;
