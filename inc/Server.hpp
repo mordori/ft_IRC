@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <fstream>
 
 #include "Commands/ICommand.hpp"
 
@@ -22,6 +23,7 @@ private:
 	std::string _password;
 	std::string _hostname;
 	std::string _launchTime;
+	std::ofstream _logFile;
 
 	std::unordered_map<int, std::unique_ptr<Client>> _clients;
 	std::unordered_map<std::string, std::unique_ptr<Channel>> _channels;
@@ -39,6 +41,7 @@ public:
 	bool setupServer();	 // socket, bind, listen, epoll_create
 	bool serverAccept();
 	void startServer();
+	void log(int logLvl, const std::string& msg);
 	void initCommands();
 	bool addEvents(int fd, uint32_t events) const;
 	bool modEvents(int fd, uint32_t events) const;
