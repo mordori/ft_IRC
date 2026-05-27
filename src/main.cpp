@@ -16,6 +16,11 @@ int main(int argc, char** argv)
 		std::cerr << "Usage: ./ircserver <port> <password>\n";
 		return 1;
 	}
+	if (std::string{ argv[2] }.empty())
+	{
+		std::cerr << "Password can not be empty!\n";
+		return 1;
+	}
 	std::uint16_t port{};
 	std::string_view portStr{ argv[1] };
 	auto params = std::from_chars(portStr.data(), portStr.data() + portStr.size(), port);
@@ -29,7 +34,6 @@ int main(int argc, char** argv)
 		std::cerr << "Port number out of accepted range\n";
 		return 1;
 	}
-
 	Server mastermind(port, std::string{ argv[2] });
 	if (!mastermind.setupServer())
 	{
