@@ -15,7 +15,7 @@ class Nick : public ICommand
 private:
 	static bool isNickValid(std::string_view nick)
 	{
-		if (nick.empty() || nick.length() > 9)
+		if (nick.empty() || nick.length() > IRC::NICKLEN)
 			return false;
 		if (std::isdigit(static_cast<unsigned char>(nick[0])))
 			return false;

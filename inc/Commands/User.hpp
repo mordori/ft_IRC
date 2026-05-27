@@ -11,8 +11,36 @@ class User : public ICommand
 public:
 	void execute(Client& client, Server& server, const std::vector<std::string_view>& params) override
 	{
-		(void)client;
-		(void)params;
-		(void)server;
+		if (!client.isPassGiven())
+		{
+			server.log(LOG_ERROR, "Password incorrect or missing");
+			client.numericReply(IRC::ERR_PASSWDMISMATCH, ":Password incorrect or missing");
+			return;
+		}
+		if (params.size() < 4)
+		{
+			server.log(LOG_WARNING, "Not enough parameters for USER command");
+			client.numericReply(IRC::ERR_NEEDMOREPARAMS, "USER :Not enough parameters");
+			return;
+		}
+		if (client.isRegistered())
+		{
+			server.log(LOG_WARNING, "Client has been registered already");
+			client.numericReply(IRC::ERR_ALREADYREGISTERED, ":You may not reregister");
+			return;
+		}
+		std::string username = std::string(params[0]);
+		std::string_view realname = params[3];
+		if (!username.empty() && username[0] != '~') 
+		{
+			username = "~" + username;
+		}
+		if (username.length() > IRC::USERLEN)
+		{
+			username.resize(IRC::USERLEN);
+		}
+		client.setUsername(username);
+		client.setRealname(realname);
+		server.registerClient(client);
 	}
 };

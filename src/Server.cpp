@@ -23,6 +23,7 @@
 #include <unordered_set>
 
 #include "../inc/Client.hpp"
+#include "../inc/Channel.hpp"
 #include "../inc/CommandRequest.hpp"
 #include "../inc/Commands/Invite.hpp"
 #include "../inc/Commands/Join.hpp"
@@ -317,13 +318,25 @@ void Server::registerClient(Client& client)
 		client.numericReply(IRC::RPL_YOURHOST, ":Your host is " + std::string(IRC::SERVER_NAME) + ", running version " + std::string(IRC::SERVER_VERSION));
 		client.numericReply(IRC::RPL_CREATED, ":This server was created " + getLaunchTime());
 		client.numericReply(IRC::RPL_MYINFO, std::string(IRC::SERVER_NAME) + " " + std::string(IRC::SERVER_VERSION) + " " + std::string(IRC::AVAILABLE_USER_MODES) + " " + std::string(IRC::AVAILABLE_CHANNEL_MODES));
+		client.numericReply(IRC::RPL_ISUPPORT, "NICKLEN=" + std::to_string(IRC::NICKLEN) + " USERLEN=" + std::to_string(IRC::USERLEN) + " :are supported by this server");
 	}
 }
 
 void Server::broadcastToChannels(Client& client, std::string& msg)
 {
-	(void)client;
-   	(void)msg;
-	// unordered_set to loop through unordered_map channel
-	//for (const auto& [channelName, channelPtr] : _channels)
+	std::unordered_set<int> received;
+	for (const auto& [channelName, channelPtr] : _channels)
+	{
+		if (channelPtr->hasClient(client.getSocket()))
+		{
+			for (const auto& [memberSocket, memberPtr] : channelPtr->getMembers())
+			{
+				if (memberSocket != client.getSocket() && !received.contains(memberSocket))
+				{
+					memberPtr->sendMessage(msg);
+					received.insert(memberSocket);
+				}
+			}
+		}
+	}
 }
