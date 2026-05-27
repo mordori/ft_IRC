@@ -55,11 +55,21 @@ Server::~Server()
 		close(_serverSocket);
 	if (_epollFd != -1)
 		close(_epollFd);
+	if (_logFile.is_open())
+		_logFile.close();
 }
 
 // setupServer + serverListen
 bool Server::setupServer()
 {
+	//Creating/Opening log file that would replace old session content
+	_logFile.open("ServerLog.txt", std::ofstream::trunc);
+	if (!_logFile.is_open())
+	{
+		std::cerr << "Cannot open log file\n";
+		return false;
+	}
+	
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverSocket == -1)
 		return false;
@@ -91,7 +101,13 @@ bool Server::setupServer()
 		return false;
 
 	initCommands();
-	return addEvents(_serverSocket, EPOLLIN);
+	if (addEvents(_serverSocket, EPOLLIN))
+	{
+		log(LOG_INFO, "Server started successfully!");
+		return true;
+	}
+	else
+		return false;
 }
 
 bool Server::serverAccept()
@@ -102,22 +118,34 @@ bool Server::serverAccept()
 	int clientFd = accept(_serverSocket, reinterpret_cast<sockaddr*>(&clientAddr),
 						  &len);  // added reinterpret_cast to make casting safer and more explicit
 	if (clientFd == -1)
+	{
+		log(LOG_ERROR, "Failed to accept connection");
 		return false;
+	}
 
 	char host[INET_ADDRSTRLEN];
 	if (inet_ntop(AF_INET, &clientAddr.sin_addr, host, INET_ADDRSTRLEN) == nullptr)
+	{
+		log(LOG_ERROR, "Failed to convert Internet address");
 		return false;
+	}
 
 	int status = fcntl(clientFd, F_SETFL, O_NONBLOCK);
 	if (status == -1)
+	{
+		log(LOG_ERROR, "Failed to setup non-blocking connection");
 		return false;
+	}
 
 	if (!addEvents(clientFd, EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP))
+	{
+		log(LOG_ERROR, "Failed to add event for new connection");
 		return false;
+	}
 
 	_clients[clientFd] = std::make_unique<Client>(*this, clientFd);
 	_clients[clientFd]->setHostname(host);
-	std::cout << "New client is added\n";
+	log(LOG_INFO, "New client added");
 	return true;
 }
 
@@ -128,7 +156,10 @@ void Server::startServer()
 	{
 		int numEvents = epoll_wait(_epollFd, events.data(), events.size(), -1);
 		if (numEvents == -1)
+		{
+			log(LOG_ERROR, "epoll_wait failed");
 			break;
+		}
 		std::span<struct epoll_event> eventQueue(events.data(), static_cast<std::size_t>(numEvents));
 		for (const auto& event : eventQueue)
 		{
@@ -136,7 +167,10 @@ void Server::startServer()
 			if (event.events & EPOLLIN)
 			{
 				if (fd == _serverSocket)
-					serverAccept();	 // check return value?
+				{
+					if (!serverAccept())
+						log(LOG_WARNING, "Adding new connection failed");
+				}
 				else if (_clients.contains(fd))
 					_clients[fd]->receiveBytes();
 			}
@@ -154,6 +188,41 @@ void Server::startServer()
 			{
 				removeClient(fd);
 			}
+		}
+	}
+}
+
+void	Server::log(int logLvl, const std::string& msg) {
+	std::string type;
+	switch (logLvl)
+	{
+		case LOG_INFO:
+			type = "INFO";
+			break;
+		case LOG_WARNING:
+			type = "WARNING";
+			break;
+		case LOG_ERROR:
+			type = "ERROR";
+			break;
+		case LOG_DEBUG:
+			type = "DEBUG";
+			break;
+		default:
+			type = "OTHER";
+	}
+	auto now = std::time(nullptr);
+    auto local = *std::localtime(&now);
+    
+	std::cout << std::put_time(&local, "[%H:%M:%S] ") << "[" << type << "]" << " " << msg << std::endl;
+
+	if (_logFile.is_open())
+	{
+		_logFile << std::put_time(&local, "[%H:%M:%S] ") << "[" << type << "]" << " " << msg << std::endl;	
+		if (msg.compare("Server started successfully!") == 0)
+		{
+			std::cout << "\tPort: " << _port << " | Password: " << _password << std::endl;
+			_logFile << "\tPort: " << _port << " | Password: " << _password << std::endl;
 		}
 	}
 }
@@ -196,8 +265,8 @@ void Server::handleRequest(Client& client, std::string_view message)
 		return;
 	if (auto iter = _commands.find(request.name); iter != _commands.end())
 		iter->second->execute(client, *this, request.params);
-	//else
-	;  // TODO: no such command
+	else
+		log(LOG_ERROR, "Invalid request"); //Need to notify client as well?
 }
 
 void Server::removeClient(int socket)
@@ -209,6 +278,8 @@ void Server::removeClient(int socket)
 
 	if (_clients.contains(socket))
 		_clients.erase(socket);
+
+	log(LOG_INFO, "Client removed");
 }
 
 std::string_view Server::getHostname()

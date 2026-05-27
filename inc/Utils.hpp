@@ -27,3 +27,12 @@ namespace IRC
 	constexpr std::string_view ERR_ALREADYREGISTERED = "462";
 	constexpr std::string_view ERR_PASSWDMISMATCH = "464";
 }
+
+enum
+{
+	LOG_INFO,
+	LOG_WARNING,
+	LOG_ERROR,
+	LOG_DEBUG,
+	LOG_MISC
+};

@@ -35,11 +35,13 @@ public:
 	{
 		if (!client.isPassGiven())
 		{
+			server.log(LOG_ERROR, "Password incorrect or missing");
 			client.numericReply(IRC::ERR_PASSWDMISMATCH, ":Password incorrect or missing");
 			return;
 		}
 		if (params.empty())
 		{
+			server.log(LOG_WARNING, "No nickname given");
 			client.numericReply(IRC::ERR_NONICKNAMEGIVEN, ":No nickname given");
 			return;
 		}
@@ -47,16 +49,19 @@ public:
 
 		if (!isNickValid(nick))
 		{
+			server.log(LOG_ERROR, "Erroneus nickname choice");
 			client.numericReply(IRC::ERR_ERRONEUSNICKNAME, std::string(nick) + " :Erroneus nickname");
 			return;
 		}
 
 		if (server.isNickInUse(nick))
 		{
+			server.log(LOG_WARNING, "Duplicate nickname choice");
 			client.numericReply(IRC::ERR_NICKNAMEINUSE, std::string(nick) + " :Nickname is already in use");
 			return;
 		}
 		std::string oldPrefix = client.getUserPrefix();
+		std::string oldNick = client.getNickname();
 		client.setNickname(nick);
 
 		if (client.isRegistered())
@@ -64,8 +69,18 @@ public:
 			std::string msg = oldPrefix + " NICK :" + std::string(nick);
 			client.sendMessage(msg);
 			server.broadcastToChannels(client, msg);
+			
+			std::string readableMsg = "<" + oldNick + "> changed nickname to <" + std::string(nick) + ">";
+			server.log(LOG_INFO, readableMsg);
+			readableMsg = "Changed nickname to " + std::string(nick);
+			client.sendMessage(readableMsg);
 		}
 		else
+		{
+			std::string wrongformat = "<" + std::string(nick) + "> :Nickname registered";
+			server.log(LOG_INFO, wrongformat);
+			client.sendMessage(wrongformat);
 			server.registerClient(client);
+		}
 	}
 };

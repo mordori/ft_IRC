@@ -15,16 +15,19 @@ public:
 	{
 		if (params.empty())
 		{
+			server.log(LOG_WARNING, "Not enough parameters");
 			client.numericReply(IRC::ERR_NEEDMOREPARAMS, "PASS :Not enough parameters");
 			return;
 		}
 		if (client.isRegistered())
 		{
+			server.log(LOG_WARNING, "Reregister attempt");
 			client.numericReply(IRC::ERR_ALREADYREGISTERED, ":You may not reregister");
 			return;
 		}
 		if (params[0] != server.getPassword())
 		{
+			server.log(LOG_ERROR, "Password incorrect");
 			client.numericReply(IRC::ERR_PASSWDMISMATCH, ":Password incorrect");
 			return;
 		}
