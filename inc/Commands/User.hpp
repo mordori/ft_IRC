@@ -19,13 +19,13 @@ public:
 		}
 		if (params.size() < 4)
 		{
-			server.log(LOG_WARNING, "Not enough parameters for USER command");
+			server.log(LOG_WARNING, client.getNickname() + ": Not enough parameters for USER command");
 			client.numericReply(IRC::ERR_NEEDMOREPARAMS, "USER :Not enough parameters");
 			return;
 		}
 		if (client.isRegistered())
 		{
-			server.log(LOG_WARNING, "Client has been registered already");
+			server.log(LOG_WARNING, client.getNickname() + ": Reregistering user attempt");
 			client.numericReply(IRC::ERR_ALREADYREGISTERED, ":You may not reregister");
 			return;
 		}
@@ -42,5 +42,6 @@ public:
 		client.setUsername(username);
 		client.setRealname(realname);
 		server.registerClient(client);
+		server.log(LOG_INFO, client.getNickname() + ": Set up user info");
 	}
 };

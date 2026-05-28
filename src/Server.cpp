@@ -268,7 +268,7 @@ void Server::handleRequest(Client& client, std::string_view message)
 	if (auto iter = _commands.find(request.name); iter != _commands.end())
 		iter->second->execute(client, *this, request.params);
 	else
-		log(LOG_ERROR, "Invalid request"); //Need to notify client as well?
+		log(LOG_ERROR, client.getNickname() + ": Invalid request"); //Need to notify client as well?
 }
 
 void Server::removeClient(int socket)
