@@ -21,7 +21,7 @@ public:
 		}
 		if (client.isRegistered())
 		{
-			server.log(LOG_WARNING, "Reregister attempt");
+			server.log(LOG_WARNING, client.getNickname() + ": Reregister attempt");
 			client.numericReply(IRC::ERR_ALREADYREGISTERED, ":You may not reregister");
 			return;
 		}
