@@ -72,14 +72,11 @@ public:
 			
 			std::string readableMsg = "<" + oldNick + "> changed nickname to <" + std::string(nick) + ">";
 			server.log(LOG_INFO, readableMsg);
-			readableMsg = "Changed nickname to " + std::string(nick);
-			client.sendMessage(readableMsg);
 		}
 		else
 		{
 			std::string wrongformat = "<" + std::string(nick) + "> :Nickname registered";
 			server.log(LOG_INFO, wrongformat);
-			client.sendMessage(wrongformat);
 			server.registerClient(client);
 		}
 	}
