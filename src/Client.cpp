@@ -51,7 +51,7 @@ void Client::sendMessage(std::string_view message)
 {
 	_bufferOut.append(message.data(), message.size());
 	_bufferOut.append("\r\n");
-	_server.modEvents(_socket, EPOLLIN | EPOLLOUT | EPOLLET);
+	_server.modEvents(_socket, EPOLLIN | EPOLLOUT | EPOLLRDHUP);
 	sendBytes();
 }
 
@@ -72,7 +72,7 @@ void Client::sendBytes()
 	}
 	if (!_bufferOut.empty())
   		_server.modEvents(_socket, EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP);
-    	else
+	else
   		_server.modEvents(_socket, EPOLLIN | EPOLLET | EPOLLRDHUP);
 }
 
@@ -89,3 +89,18 @@ void Client::numericReply(std::string_view numeric, std::string_view msg)
 
 // IRC User PrefiX: Nickname!username@hostname (e.g., :Alice!alice@example.com PRIVMSG)
 std::string Client::getUserPrefix() const { return (":" + _nickname + "!" + _username + "@" + _hostname); }
+
+void Client::joinChannel(Channel* channel)
+{
+	_channels.insert(channel);
+}
+
+void Client::leaveChannel(Channel* channel)
+{
+	_channels.erase(channel);
+}
+
+void Client::clearChannels()
+{
+	_channels.clear();
+}

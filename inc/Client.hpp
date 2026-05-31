@@ -2,8 +2,10 @@
 
 #include <string>
 #include <string_view>
+#include <unordered_set>
 
 class Server;
+class Channel;
 
 class Client
 {
@@ -20,6 +22,7 @@ private:
 	bool _isRegisterd = false;
 	bool _isPassGiven = false;
 	bool _isDisconnected = false;
+	std::unordered_set<Channel*> _channels;
 
 public:
 	Client(Server& server, int socket) : _server{ server }, _socket{ socket } {}
@@ -43,6 +46,7 @@ public:
 	[[nodiscard]] bool isRegistered() const { return _isRegisterd; }
 	[[nodiscard]] bool isPassGiven() const { return _isPassGiven; }
 	[[nodiscard]] bool isDisconnected() const { return _isDisconnected; }
+	[[nodiscard]] const std::unordered_set<Channel*>& getChannels() const { return _channels; }
 
 	void setHostname(std::string_view host) { _hostname = host; }
 	void setNickname(std::string_view nick) { _nickname = nick; }
@@ -53,5 +57,9 @@ public:
 	void setDisconnect(bool status) { _isDisconnected = status; }
 
 	std::string getUserPrefix() const;
+	void joinChannel(Channel* channel);
+	void leaveChannel(Channel* channel);
+	void clearChannels();
 	
+
 };

@@ -53,4 +53,9 @@ public:
 	bool isNickInUse(std::string_view nick) const;
 	void registerClient(Client& client);
 	void broadcastToChannels(Client& client, std::string& msg);
+	Channel* createChannel(const std::string& name);
+	Channel* findChannel(const std::string& name);
+	void removeChannel(const std::string& name);
+	const std::unordered_map<std::string, std::unique_ptr<Channel>>& getAllChannels() const { return _channels; }
+
 };
