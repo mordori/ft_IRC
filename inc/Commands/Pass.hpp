@@ -32,5 +32,6 @@ public:
 			return;
 		}
 		client.setPassGiven(true);
+		server.log(LOG_INFO, "Password matches!");
 	}
 };

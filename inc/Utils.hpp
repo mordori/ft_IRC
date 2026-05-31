@@ -9,6 +9,7 @@ namespace IRC
 	constexpr std::uint16_t PORT_MIN = 1024;
 	constexpr std::size_t NICKLEN = 9;
 	constexpr std::size_t USERLEN = 9;
+	constexpr std::size_t CHANNELLEN = 50;	
 	constexpr std::size_t EVENT_QUEUE_SIZE = 64;
 
 	constexpr std::string_view SERVER_NAME = "ft_irc.mastermind";
@@ -22,13 +23,21 @@ namespace IRC
 	constexpr std::string_view RPL_MYINFO = "004";
 	constexpr std::string_view RPL_ISUPPORT = "005";
 
+	constexpr std::string_view RPL_TOPIC = "332";
+	constexpr std::string_view RPL_NAMREPLY = "353";
+	constexpr std::string_view RPL_ENDOFNAMES  = "366";
+
 	constexpr std::string_view ERR_NONICKNAMEGIVEN = "431";
 	constexpr std::string_view ERR_ERRONEUSNICKNAME = "432";
 	constexpr std::string_view ERR_NICKNAMEINUSE = "433";
-
+	constexpr std::string_view ERR_NOTREGISTERED = "451";
 	constexpr std::string_view ERR_NEEDMOREPARAMS = "461";
 	constexpr std::string_view ERR_ALREADYREGISTERED = "462";
 	constexpr std::string_view ERR_PASSWDMISMATCH = "464";
+	constexpr std::string_view ERR_CHANNELISFULL = "471";
+	constexpr std::string_view ERR_INVITEONLYCHAN = "473";
+	constexpr std::string_view ERR_BADCHANNELKEY = "475";	
+	constexpr std::string_view ERR_BADCHANMASK = "476";
 }
 
 enum

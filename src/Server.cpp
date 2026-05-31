@@ -138,7 +138,7 @@ bool Server::serverAccept()
 		return false;
 	}
 
-	if (!addEvents(clientFd, EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP))
+	if (!addEvents(clientFd, EPOLLIN | EPOLLRDHUP))
 	{
 		log(LOG_ERROR, "Failed to add event for new connection");
 		return false;
@@ -164,6 +164,7 @@ void Server::startServer()
 		std::span<struct epoll_event> eventQueue(events.data(), static_cast<std::size_t>(numEvents));
 		for (const auto& event : eventQueue)
 		{
+			 std::cerr << "event on fd: " << event.data.fd << " events: " << event.events << "\n";
 			int fd = event.data.fd;
 			if (event.events & EPOLLIN)
 			{
@@ -318,7 +319,7 @@ void Server::registerClient(Client& client)
 		client.numericReply(IRC::RPL_YOURHOST, ":Your host is " + std::string(IRC::SERVER_NAME) + ", running version " + std::string(IRC::SERVER_VERSION));
 		client.numericReply(IRC::RPL_CREATED, ":This server was created " + getLaunchTime());
 		client.numericReply(IRC::RPL_MYINFO, std::string(IRC::SERVER_NAME) + " " + std::string(IRC::SERVER_VERSION) + " " + std::string(IRC::AVAILABLE_USER_MODES) + " " + std::string(IRC::AVAILABLE_CHANNEL_MODES));
-		client.numericReply(IRC::RPL_ISUPPORT, "NICKLEN=" + std::to_string(IRC::NICKLEN) + " USERLEN=" + std::to_string(IRC::USERLEN) + " :are supported by this server");
+		client.numericReply(IRC::RPL_ISUPPORT, "NICKLEN=" + std::to_string(IRC::NICKLEN) + " USERLEN=" + std::to_string(IRC::USERLEN) + " CHANNELLEN=" + std::to_string(IRC::CHANNELLEN) + " :are supported by this server");
 	}
 }
 
@@ -339,4 +340,24 @@ void Server::broadcastToChannels(Client& client, std::string& msg)
 			}
 		}
 	}
+}
+
+Channel* Server::createChannel(const std::string& name)
+{
+	auto& newChannel = _channels[name];
+	newChannel = std::make_unique<Channel>(name);
+	return newChannel.get();
+}
+
+Channel* Server::findChannel(const std::string& name)
+{
+	auto it = _channels.find(name);
+	if (it != _channels.end())
+		return it->second.get();
+	return nullptr;
+}
+
+void Server::removeChannel(const std::string& name)
+{
+	_channels.erase(name);
 }
