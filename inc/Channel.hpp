@@ -3,6 +3,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <chrono>
 
 class Server;
 
@@ -12,18 +13,19 @@ class Channel
 {
 private:
 	std::string _name;
-	std::string	_modes;
+	std::chrono::system_clock::time_point	_creationTime;
 	std::string _topic;
 	std::string _key;
 	bool _inviteOnly = false;
-	size_t _memberLimit;
+	bool _privilegeRequired4Topic = false;
+	size_t _memberLimit = IRC::MAX_CHANNEL_SIZE;
 	
 	std::unordered_map<int, Client*> _members;
 	std::unordered_map<int, Client*> _operators;
 	std::unordered_map<int, Client*> _invited; 
 
 public:
-	Channel(std::string_view name) : _name{ name } {}
+	Channel(std::string_view name) : _name{ name }, _creationTime{ std::chrono::system_clock::now() } {}
 	Channel(const Channel&) = delete;
 	Channel(Channel&&) = delete;
 	~Channel() = default ;
@@ -45,13 +47,19 @@ public:
 	void addMember(Client& client);
 	void removeMember(int socket);
 	void addOperator(Client& client);
+	void removeOperator(int socket);
 	bool isFull() const;
 	size_t getMemberSize() const;
 	std::string allMembers() const;
 
 	
 	[[nodiscard]] const std::string& getChannelName() const { return _name; }
-
-	void	setModes(std::string_view mode); //modify _modes when ops make changes with MODE
-	[[nodiscard]] const std::string& getModes() const { return _modes; }
+	[[nodiscard]] const std::chrono::system_clock::time_point getCreationTime() const { return _creationTime; }
+	std::string	printCreationTime();
+	void	setModeInvite(int AddOrRemove); //if AddOrRemove == 1 -> add -> _inviteOnly = true; else if (AOR == -1) -> _inviteOnly = false
+	void	setModeTopic(int AddOrRemove); //if AddOrRemove == 1 -> add -> _privilegeRequired4Topic = true; else = false (This channel mode controls whether channel privileges are required to set the topic)
+	void	setMemberLimit(size_t num) { _memberLimit = num; }
+	void	setPassword(std::string_view key); //if !key -> _key = nullptr; else _key = key
+	Client*	retrieveClient(const std::string& name);
+	void	broadcastToMembers(Client& client, const std::string& msg); //When the server is done processing the modes, a MODE command is sent to all members of the channel containing the mode changes.
 };
