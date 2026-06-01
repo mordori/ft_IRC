@@ -10,7 +10,8 @@ namespace IRC
 	constexpr std::size_t NICKLEN = 9;
 	constexpr std::size_t USERLEN = 9;
 	constexpr std::size_t CHANNELLEN = 50;	
-	constexpr std::size_t EVENT_QUEUE_SIZE = 64;
+	constexpr std::size_t EVENT_QUEUE_SIZE = 64;	
+	constexpr std::size_t MAX_CHANNEL_SIZE = 200;
 
 	constexpr std::string_view SERVER_NAME = "ft_irc.mastermind";
 	constexpr std::string_view SERVER_VERSION = "mastermind-1.0";
@@ -32,6 +33,7 @@ namespace IRC
 	constexpr std::string_view RPL_CREATIONTIME = "329";
 	constexpr std::string_view ERR_NOTONCHANNEL = "442";
 	constexpr std::string_view ERR_CHANOPRIVSNEEDED = "482";
+	constexpr std::string_view ERR_UNKNOWNMODE = "472";
 	
 	constexpr std::string_view ERR_NONICKNAMEGIVEN = "431";
 	constexpr std::string_view ERR_ERRONEUSNICKNAME = "432";

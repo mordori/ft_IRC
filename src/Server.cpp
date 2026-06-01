@@ -164,7 +164,6 @@ void Server::startServer()
 		std::span<struct epoll_event> eventQueue(events.data(), static_cast<std::size_t>(numEvents));
 		for (const auto& event : eventQueue)
 		{
-			 std::cerr << "event on fd: " << event.data.fd << " events: " << event.events << "\n";
 			int fd = event.data.fd;
 			if (event.events & EPOLLIN)
 			{
