@@ -12,6 +12,7 @@ class Channel
 {
 private:
 	std::string _name;
+	std::string	_modes;
 	std::string _topic;
 	std::string _key;
 	bool _inviteOnly = false;
@@ -49,4 +50,8 @@ public:
 	std::string allMembers() const;
 
 	
+	[[nodiscard]] const std::string& getChannelName() const { return _name; }
+
+	void	setModes(std::string_view mode); //modify _modes when ops make changes with MODE
+	[[nodiscard]] const std::string& getModes() const { return _modes; }
 };
