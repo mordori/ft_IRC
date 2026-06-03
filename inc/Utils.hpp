@@ -28,9 +28,11 @@ namespace IRC
 	constexpr std::string_view RPL_NAMREPLY = "353";
 	constexpr std::string_view RPL_ENDOFNAMES  = "366";
 
+	constexpr std::string_view ERR_NOSUCHNICK = "401";
 	constexpr std::string_view ERR_NOSUCHCHANNEL = "403";
 	constexpr std::string_view RPL_CHANNELMODEIS = "324";
 	constexpr std::string_view RPL_CREATIONTIME = "329";
+	constexpr std::string_view ERR_USERNOTINCHANNEL = "441";
 	constexpr std::string_view ERR_NOTONCHANNEL = "442";
 	constexpr std::string_view ERR_CHANOPRIVSNEEDED = "482";
 	constexpr std::string_view ERR_UNKNOWNMODE = "472";

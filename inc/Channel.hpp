@@ -40,6 +40,7 @@ public:
 	
 	bool hasClient(int socket) const;
 	bool hasTopic() const;
+	bool hasTopicRestriction() const;
 	bool hasKey() const;
 	bool isOperator(int socket) const;
 	bool isInviteOnly() const;
@@ -56,10 +57,11 @@ public:
 	[[nodiscard]] const std::string& getChannelName() const { return _name; }
 	[[nodiscard]] const std::chrono::system_clock::time_point getCreationTime() const { return _creationTime; }
 	std::string	printCreationTime();
-	void	setModeInvite(int AddOrRemove); //if AddOrRemove == 1 -> add -> _inviteOnly = true; else if (AOR == -1) -> _inviteOnly = false
-	void	setModeTopic(int AddOrRemove); //if AddOrRemove == 1 -> add -> _privilegeRequired4Topic = true; else = false (This channel mode controls whether channel privileges are required to set the topic)
+	void	setModeInvite(int AddOrRemove);
+	void	setModeTopic(int AddOrRemove);
+	void	setPassword(const std::string& pw);
 	void	setMemberLimit(size_t num) { _memberLimit = num; }
-	void	setPassword(std::string_view key); //if !key -> _key = nullptr; else _key = key
+	size_t	getMemberLimit() const;
 	Client*	retrieveClient(const std::string& name);
-	void	broadcastToMembers(Client& client, const std::string& msg); //When the server is done processing the modes, a MODE command is sent to all members of the channel containing the mode changes.
+	void	broadcastToMembers(const std::string& msg); //When the server is done processing the modes, a MODE command is sent to all members of the channel containing the mode changes.
 };
