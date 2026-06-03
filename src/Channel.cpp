@@ -85,7 +85,7 @@ std::string	Channel::printCreationTime() {
 	auto creationTime = std::chrono::system_clock::to_time_t(getCreationTime());
 	auto local = *std::localtime(&creationTime);
 	std::ostringstream	display;
-	display << std::put_time(&local, " %e-%b-%Y %H:%M") << std::endl;
+	display << std::put_time(&local, "%e-%b-%Y %H:%M");
 	return display.str();
 }
 
@@ -102,13 +102,6 @@ void	Channel::setModeTopic(int AddOrRemove) {
 		_privilegeRequired4Topic = true;
 	else if (AddOrRemove == -1)
 		_privilegeRequired4Topic = false;
-}
-
-void	Channel::setPassword(const std::string& pw) {
-	if (pw.empty())
-		_key.clear();
-	else
-		_key = pw;
 }
 
 Client*	Channel::retrieveClient(const std::string& name) {

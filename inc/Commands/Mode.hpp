@@ -55,9 +55,8 @@ public:
 			client.numericReply(IRC::ERR_NOTONCHANNEL, channel->getChannelName() + " :You're not on that channel");
 			return;
 		}
-
 		//Basic channel info inquiry, anyone can send command
-		if (params[1].empty())
+		if (params.size() == 1)
 		{
 			client.numericReply(IRC::RPL_CHANNELMODEIS, channel->getChannelName() + " " + getModes(channel));
 			client.numericReply(IRC::RPL_CREATIONTIME, channel->getChannelName() + channel->printCreationTime());
@@ -114,23 +113,25 @@ public:
 				case 'i':
 					channel->setModeInvite(AddOrRemove);
 					appliedModes += modeString[i];
+					server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE i] Modified Invite mode" );
 					break;
 				
 				case 't':
 					channel->setModeTopic(AddOrRemove);
 					appliedModes += modeString[i];
+					server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE t] Modified Topic mode" );
 					break;
 				
 				case 'k':
 					if (AddOrRemove == 1)
 					{
-						std::string	pw = std::string(params[paramIndex]);
-						if (pw.empty())
+						if (paramIndex >= params.size())
 						{
 							server.log(LOG_ERROR, client.getNickname() + ": [MODE +k] Key value missing");
 							client.numericReply(IRC::ERR_INVALIDKEY, channel->getChannelName() + ": [MODE +k] Key is not well-formed");
 							break;
 						}
+						std::string	pw = std::string(params[paramIndex]);
 						if (!checkKey(pw))
 						{
 							server.log(LOG_ERROR, client.getNickname() + ": [MODE +k] Invalid key");
@@ -141,17 +142,19 @@ public:
 							pw.resize(IRC::CHANNELLEN);
 						channel->setPassword(pw);
 						paramIndex++;
+						server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE k] Set channel key");
 					}
 					else if (AddOrRemove == -1)
 					{
-						channel->setPassword(nullptr);
+						channel->removePassword();
+						server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE k] Remove channel key");
 					}
 					appliedModes += modeString[i];
 					break;
 				
 				case 'o':
 				{
-					if (params[paramIndex].empty())
+					if (paramIndex >= params.size())
 					{
 						server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE o] No target user provided");
 						client.numericReply(IRC::ERR_NEEDMOREPARAMS, channel->getChannelName() + " :[MODE o] Need a target");
@@ -162,6 +165,7 @@ public:
 					{
 						server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE o] No such nick");
 						client.numericReply(IRC::ERR_NOSUCHNICK, nick + " :[MODE o] No such nick");
+						paramIndex++;
 						break;
 					}
 					Client* target = channel->retrieveClient(nick);
@@ -169,6 +173,7 @@ public:
 					{
 						server.log(LOG_ERROR, client.getNickname() + ": [MODE o] Target user " + nick + " not on channel " + channel->getChannelName());
 						client.numericReply(IRC::ERR_USERNOTINCHANNEL, nick + " " + channel->getChannelName() + " :They aren't on that channel");
+						paramIndex++;
 						break;
 					}
 					if (AddOrRemove == 1)
@@ -178,13 +183,14 @@ public:
 					appliedModes += modeString[i];
 					appliedParams += " " + std::string(params[paramIndex]);
 					paramIndex++;
+					server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE] Modify op privilege of " + target->getNickname());
 					break;
 				}
 					
 				case 'l':
 					if (AddOrRemove == 1)
 					{
-						if (params[paramIndex].empty())
+						if (paramIndex >= params.size())
 						{
 							server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE +l] No number provided");
 							client.numericReply(IRC::ERR_NEEDMOREPARAMS, channel->getChannelName() + " :[MODE +l] Need a number");
@@ -204,17 +210,19 @@ public:
 						channel->setMemberLimit(num);
 						appliedParams += " " + std::to_string(num);
 						paramIndex++;
+						server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE l] Set limit");
 					}
 					else if (AddOrRemove == -1)
 					{
 						channel->setMemberLimit(IRC::MAX_CHANNEL_SIZE);
+						server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE l] Back to max limit");
 					}
 					appliedModes += modeString[i];
 					break;
 				
 				default:
 					server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE] Unknown mode " + modeString[i]);
-					client.numericReply(IRC::ERR_UNKNOWNMODE, std::to_string(modeString[i]) + " :is an unknown mode char");
+					client.numericReply(IRC::ERR_UNKNOWNMODE, std::string(1, modeString[i]) + " :is an unknown mode char");
 					break;
 			}
 		}
@@ -239,9 +247,9 @@ public:
 		if (!modes.empty())
 		{
 			modes.insert(0, 1, '+');
-			if (modes.find('k'))
+			if (modes.find('k') != std::string::npos)
 				modes += " " + channel->getPassword();
-			if (modes.find('l'))
+			if (modes.find('l') != std::string::npos)
 				modes += " " + std::to_string(channel->getMemberLimit());
 		}
 		return modes;
