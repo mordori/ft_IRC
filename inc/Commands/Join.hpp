@@ -112,11 +112,12 @@ public:
 			client.joinChannel(channel);
 			std::string msg = ":" + client.getUserPrefix() + " JOIN " + std::string(name);
 			client.sendMessage(msg);
+			server.log(LOG_INFO, client.getNickname() + " joined " + std::string(name));	
 			
 			if (isNew)
 			{
 				channel->addOperator(client);
-				std::string modeO = "Mode " + std::string(name) + " +o " + client.getNickname();
+				std::string modeO = "MODE " + std::string(name) + " +o " + client.getNickname();
 				client.sendMessage(modeO);
 				server.log(LOG_INFO, client.getNickname() + " is an operator of channel " + std::string(name));
 			}
@@ -133,7 +134,6 @@ public:
 				if (member->getSocket() != client.getSocket())
 					member->sendMessage(msg);
 			}
-			server.log(LOG_INFO, client.getNickname() + " joined " + std::string(name));			
 		}
 	}
 };

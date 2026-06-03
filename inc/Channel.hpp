@@ -62,7 +62,8 @@ public:
 	std::string	printCreationTime();
 	void	setModeInvite(int AddOrRemove);
 	void	setModeTopic(int AddOrRemove);
-	void	setPassword(const std::string& pw);
+	void	setPassword(const std::string& pw) { _key = pw; }
+	void	removePassword() { _key.clear(); }
 	void	setMemberLimit(size_t num) { _memberLimit = num; }
 	size_t	getMemberLimit() const { return _memberLimit; }
 	Client*	retrieveClient(const std::string& name);
