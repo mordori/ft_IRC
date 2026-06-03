@@ -36,6 +36,8 @@ namespace IRC
 	constexpr std::string_view ERR_NOTONCHANNEL = "442";
 	constexpr std::string_view ERR_CHANOPRIVSNEEDED = "482";
 	constexpr std::string_view ERR_UNKNOWNMODE = "472";
+	constexpr std::string_view ERR_INVALIDKEY = "525";
+	constexpr std::string_view ERR_INVALIDMODEPARAM = "696";
 	
 	constexpr std::string_view ERR_NONICKNAMEGIVEN = "431";
 	constexpr std::string_view ERR_ERRONEUSNICKNAME = "432";

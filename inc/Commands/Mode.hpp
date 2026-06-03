@@ -2,6 +2,7 @@
 
 #include <string_view>
 #include <vector>
+#include <charconv>
 
 #include "../Channel.hpp"
 #include "../Client.hpp"
@@ -16,6 +17,14 @@ private:
 			return false;
 		return true;
 	}
+	bool	checkKey(std::string_view str)
+	{
+		for (size_t i = 0; i < str.size(); i++) {
+			if (str[i] < 33 || str[i] > 126) //no space or unprintable characters
+				return false;
+		}
+		return true;
+	}
 
 public:
 	void execute(Client& client, Server& server, const std::vector<std::string_view>& params) override
@@ -24,13 +33,13 @@ public:
 		{
 			server.log(LOG_ERROR, client.getNickname() + ": [MODE] No param provided");
 			client.numericReply(IRC::ERR_NEEDMOREPARAMS, " :[MODE] Need more param");
-			return ;
+			return;
 		}
 		if (!params[0].starts_with("#"))
 		{
 			server.log(LOG_WARNING, client.getNickname() + ": [MODE] Attempting user mode");
 			client.sendMessage("[MODE] User modes not supported");
-			return ;
+			return;
 		}
 		
 		Channel* channel = server.findChannel(std::string(params[0]));
@@ -38,7 +47,7 @@ public:
 		{
 			server.log(LOG_WARNING, client.getNickname() + ": [MODE] Channel " + std::string(params[0]) + " does not exist");
 			client.numericReply(IRC::ERR_NOSUCHCHANNEL, std::string(params[0]) + " :No such channel");
-			return ;
+			return;
 		}
 		if (!channel->hasClient(client.getSocket()))
 		{
@@ -76,7 +85,7 @@ public:
 		std::string	appliedParams;
 		int	AddOrRemove = 0;
 		size_t	paramIndex = 2;
-		for (int i = 0; i < modeString.size(); i++)
+		for (size_t i = 0; i < modeString.size(); i++)
 		{
 			if (modeString[i] == '+')
 			{
@@ -115,13 +124,27 @@ public:
 				case 'k':
 					if (AddOrRemove == 1)
 					{
-						//more checks with param
-						appliedParams += " " + std::string(params[paramIndex]);
+						std::string	pw = std::string(params[paramIndex]);
+						if (pw.empty())
+						{
+							server.log(LOG_ERROR, client.getNickname() + ": [MODE +k] Key value missing");
+							client.numericReply(IRC::ERR_INVALIDKEY, channel->getChannelName() + ": [MODE +k] Key is not well-formed");
+							break;
+						}
+						if (!checkKey(pw))
+						{
+							server.log(LOG_ERROR, client.getNickname() + ": [MODE +k] Invalid key");
+							client.numericReply(IRC::ERR_INVALIDMODEPARAM, channel->getChannelName() + " +k " + pw + " :Invalid key");
+							break;
+						}
+						if (pw.size() > IRC::CHANNELLEN)
+							pw.resize(IRC::CHANNELLEN);
+						channel->setPassword(pw);
 						paramIndex++;
 					}
 					else if (AddOrRemove == -1)
 					{
-						//remove key
+						channel->setPassword(nullptr);
 					}
 					appliedModes += modeString[i];
 					break;
@@ -173,13 +196,13 @@ public:
 						if (res.ec != std::errc{} || res.ptr != str.data() + str.size() || num == 0)
 						{
 							server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE +l] Invalid number");
-							client.sendMessage(client.getNickname() + " :[MODE +l] Invalid number");
+							client.numericReply(IRC::ERR_INVALIDMODEPARAM, channel->getChannelName() + " +l " + std::string(str) + " :Invalid number");
 							break;
 						}
 						if (num > IRC::MAX_CHANNEL_SIZE)
 							num = IRC::MAX_CHANNEL_SIZE;
 						channel->setMemberLimit(num);
-						appliedParams += " " + std::string(params[paramIndex]);
+						appliedParams += " " + std::to_string(num);
 						paramIndex++;
 					}
 					else if (AddOrRemove == -1)
@@ -191,7 +214,7 @@ public:
 				
 				default:
 					server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE] Unknown mode " + modeString[i]);
-					client.numericReply(IRC::ERR_UNKNOWNMODE, modeString[i] + " :is an unknown mode char");
+					client.numericReply(IRC::ERR_UNKNOWNMODE, std::to_string(modeString[i]) + " :is an unknown mode char");
 					break;
 			}
 		}
@@ -202,7 +225,7 @@ public:
 		}
 	}
 
-	std::string&	getModes(Channel* channel)
+	std::string	getModes(Channel* channel)
 	{
 		std::string	modes;
 		if (channel->isInviteOnly())
@@ -211,12 +234,16 @@ public:
 			modes += 't';
 		if (channel->hasKey())
 			modes += 'k';
-			//add key?
 		if (channel->getMemberLimit() < IRC::MAX_CHANNEL_SIZE)
 			modes += 'l';
-			//itoa memberLimit
 		if (!modes.empty())
-			modes.insert(modes[0], 1, '+');
+		{
+			modes.insert(0, 1, '+');
+			if (modes.find('k'))
+				modes += " " + channel->getPassword();
+			if (modes.find('l'))
+				modes += " " + std::to_string(channel->getMemberLimit());
+		}
 		return modes;
 	}
 };

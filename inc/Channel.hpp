@@ -4,6 +4,9 @@
 #include <string_view>
 #include <unordered_map>
 #include <chrono>
+#include <iomanip>
+
+#include "Utils.hpp"
 
 class Server;
 
@@ -54,14 +57,14 @@ public:
 	std::string allMembers() const;
 
 	
-	[[nodiscard]] const std::string& getChannelName() const { return _name; }
+	[[nodiscard]] const std::string& getChannelName() const { return _name; } //dup function, choose either getName() or getChannelName(), then make changes to other files
 	[[nodiscard]] const std::chrono::system_clock::time_point getCreationTime() const { return _creationTime; }
 	std::string	printCreationTime();
 	void	setModeInvite(int AddOrRemove);
 	void	setModeTopic(int AddOrRemove);
 	void	setPassword(const std::string& pw);
 	void	setMemberLimit(size_t num) { _memberLimit = num; }
-	size_t	getMemberLimit() const;
+	size_t	getMemberLimit() const { return _memberLimit; }
 	Client*	retrieveClient(const std::string& name);
-	void	broadcastToMembers(const std::string& msg); //When the server is done processing the modes, a MODE command is sent to all members of the channel containing the mode changes.
+	void	broadcastToMembers(const std::string& msg);
 };
