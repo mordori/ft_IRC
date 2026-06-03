@@ -11,6 +11,11 @@ bool Channel::hasTopic() const
 	return !_topic.empty();
 }
 
+bool Channel::hasTopicRestriction() const
+{
+	return _privilegeRequired4Topic;
+}
+
 bool Channel::hasKey() const
 {
 	return !_key.empty();
@@ -82,4 +87,45 @@ std::string	Channel::printCreationTime() {
 	std::ostringstream	display;
 	display << std::put_time(&local, " %e-%b-%Y %H:%M") << std::endl;
 	return display.str();
+}
+
+void	Channel::setModeInvite(int AddOrRemove) {
+	if (AddOrRemove == 1)
+		_inviteOnly = true;
+	else if (AddOrRemove == -1)
+		_inviteOnly = false;
+}
+
+//This channel mode (+t/-t) controls whether channel privileges are required to set the topic
+void	Channel::setModeTopic(int AddOrRemove) {
+	if (AddOrRemove == 1)
+		_privilegeRequired4Topic = true;
+	else if (AddOrRemove == -1)
+		_privilegeRequired4Topic = false;
+}
+
+void	Channel::setPassword(const std::string& pw) {
+	if (pw.empty())
+		_key.clear();
+	else
+		_key = pw;
+}
+
+Client*	Channel::retrieveClient(const std::string& name) {
+	for (const auto& pair : _members) {
+        if (pair.second->getNickname() == name) {
+            return pair.second;
+        }
+    }
+    return nullptr;
+}
+
+void	Channel::broadcastToMembers(const std::string& msg) {
+	Client* clientPtr;
+	for (const auto& pair : _members) {
+		clientPtr = pair.second;
+		if (clientPtr) {
+			clientPtr->sendMessage(msg);
+		}
+	}
 }
