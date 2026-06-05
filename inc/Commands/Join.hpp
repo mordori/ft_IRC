@@ -102,7 +102,7 @@ public:
 
 			channel->addMember(client);
 			client.joinChannel(channel);
-			std::string msg = ":" + client.getUserPrefix() + " JOIN " + std::string(name);
+			std::string msg = client.getUserPrefix() + " JOIN " + std::string(name);
 			client.sendMessage(msg);
 			server.log(LOG_INFO, client.getNickname() + " joined " + std::string(name));	
 			
