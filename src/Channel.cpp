@@ -48,6 +48,8 @@ void Channel::addMember(Client& client)
 
 void Channel::removeMember(int socket)
 {
+	if (isOperator(socket))
+		removeOperator(socket);
 	_members.erase(socket);
 	_operators.erase(socket);
 	_invited.erase(socket);
