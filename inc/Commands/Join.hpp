@@ -67,7 +67,7 @@ public:
 			{
 				server.log(LOG_WARNING, "Channel name is not valid.");
 				client.numericReply(IRC::ERR_BADCHANMASK, std::string(name) + " :Bad Channel Mask");
-				return;
+				continue;
 			}
 
 			Channel* channel = server.findChannel(std::string(name));
