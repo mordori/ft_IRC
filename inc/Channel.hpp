@@ -48,6 +48,7 @@ public:
 	bool isOperator(int socket) const;
 	bool isInviteOnly() const;
 	bool isInvited(int socket) const;
+	void addInvite(Client& client);
 	void addMember(Client& client);
 	void removeMember(int socket);
 	void addOperator(Client& client);
@@ -55,8 +56,7 @@ public:
 	bool isFull() const;
 	size_t getMemberSize() const;
 	std::string allMembers() const;
-
-	
+		
 	[[nodiscard]] const std::string& getChannelName() const { return _name; } //dup function, choose either getName() or getChannelName(), then make changes to other files
 	[[nodiscard]] const std::chrono::system_clock::time_point getCreationTime() const { return _creationTime; }
 	std::string	printCreationTime();

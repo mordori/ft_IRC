@@ -57,5 +57,6 @@ public:
 	Channel* findChannel(const std::string& name);
 	void removeChannel(const std::string& name);
 	const std::unordered_map<std::string, std::unique_ptr<Channel>>& getAllChannels() const { return _channels; }
+	Client* findClient(const std::string& name);
 
 };

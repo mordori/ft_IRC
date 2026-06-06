@@ -12,14 +12,6 @@
 class Join : public ICommand
 {
 private:
-	static std::string_view split(std::string_view& str)
-	{
-		auto pos = str.find(',');
-		auto splited = str.substr(0, pos);
-		str = (pos == std::string_view::npos) ? std::string_view{} : str.substr(pos + 1);
-		return splited;
-	}
-	
 	static bool isValidChannel(std::string_view name)
 	{
 		if (name.empty() || name[0] != '#' || name.length() > IRC::CHANNELLEN)
@@ -68,8 +60,8 @@ public:
 		std::string_view keys = params.size() >= 2 ? params[1] : std::string_view{};
 		while (!channels.empty())
 		{
-			std::string_view name = split(channels);
-			std::string_view password = split(keys);
+			std::string_view name = Utils::split(channels);
+			std::string_view password = Utils::split(keys);
 
 			if (!isValidChannel(name))
 			{
