@@ -46,7 +46,7 @@ public:
 			{
 				if (!channel->hasClient(client.getSocket()))
 					continue;
-				std::string msg = client.getUserPrefix() + " PART " + channel->getName() + " :";
+				std::string msg = client.getUserPrefix() + " PART " + channel->getName();
 				for (auto& [socket, member] : channel->getMembers())
 					member->sendMessage(msg);
 				channel->removeMember(client.getSocket());
