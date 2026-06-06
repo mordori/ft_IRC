@@ -34,6 +34,7 @@
 #include "../inc/Commands/Pass.hpp"
 #include "../inc/Commands/Ping.hpp"
 #include "../inc/Commands/Privmsg.hpp"
+#include "../inc/Commands/Quit.hpp"
 #include "../inc/Commands/Topic.hpp"
 #include "../inc/Commands/User.hpp"
 #include "../inc/Utils.hpp"
@@ -255,6 +256,7 @@ void Server::initCommands()
 	_commands["PASS"] = std::make_unique<Pass>();
 	_commands["PING"] = std::make_unique<Ping>();
 	_commands["PRIVMSG"] = std::make_unique<Privmsg>();
+	_commands["QUIT"] = std::make_unique<Quit>();
 	_commands["TOPIC"] = std::make_unique<Topic>();
 	_commands["USER"] = std::make_unique<User>();
 }
