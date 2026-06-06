@@ -36,6 +36,11 @@ bool Channel::isInvited(int socket) const
 	return _invited.contains(socket);
 }
 
+void Channel::addInvite(Client& client)
+{
+	_invited[client.getSocket()] = &client;
+}
+
 void Channel::addMember(Client& client)
 { 
 	_members[client.getSocket()] = &client;
@@ -44,6 +49,8 @@ void Channel::addMember(Client& client)
 void Channel::removeMember(int socket)
 {
 	_members.erase(socket);
+	_operators.erase(socket);
+	_invited.erase(socket);
 }
 
 void Channel::addOperator(Client& client)

@@ -360,3 +360,15 @@ void Server::removeChannel(const std::string& name)
 {
 	_channels.erase(name);
 }
+
+Client* Server::findClient(const std::string& name)
+{
+	for (const auto& [socket, clientPtr] : _clients)
+	{
+		if (!clientPtr->getNickname().empty() && clientPtr->getNickname() == name)
+		{
+			return clientPtr.get();
+		}
+	}
+	return nullptr;
+}
