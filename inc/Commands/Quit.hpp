@@ -19,21 +19,18 @@ public:
 		}
 		std::string broadcastMsg = client.getUserPrefix() + " QUIT :Quit:" + reason;
 		
-		//terminate a client’s connection to the server
 		std::unordered_set<Channel*>	clientChannels = client.getChannels();
 		if (!clientChannels.empty())
 		{
+			server.broadcastToChannels(client, broadcastMsg);
 			for (Channel* channel : clientChannels)
-			{
 				channel->removeMember(client.getSocket());
-				channel->broadcastToMembers(broadcastMsg);
-			}
+			client.clearChannels();
 		}
-		client.clearChannels();
+
 		std::string errMsg = "ERROR : Closing connection" + reason;
 		client.sendMessage(errMsg);
 		client.setDisconnect(true);
 		server.log(LOG_INFO, client.getNickname() + " is quitting");
-		server.removeClient(client.getSocket());
 	}
 };
