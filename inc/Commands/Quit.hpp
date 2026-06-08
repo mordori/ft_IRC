@@ -28,7 +28,9 @@ public:
 			client.clearChannels();
 		}
 
-		std::string errMsg = "ERROR : Closing connection" + reason;
+		if (!reason.empty())
+			reason.insert(1, ":");
+		std::string errMsg = "ERROR :Closing connection" + reason;
 		client.sendMessage(errMsg);
 		client.setDisconnect(true);
 		server.log(LOG_INFO, client.getNickname() + " is quitting");
