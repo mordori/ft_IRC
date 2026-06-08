@@ -53,7 +53,7 @@ public:
 				continue;
 			std::string targetNick = std::string(nick);
 			Client* target = server.findClient(std::string(nick));
-			if (!target || !channel->hasClient(target->getSocket()))
+			if (!target || !channel->retrieveClient(targetNick))
 			{
 				server.log(LOG_WARNING, targetNick + " is not found or not on channel!");
 				client.numericReply(IRC::ERR_USERNOTINCHANNEL, targetNick + " " + channelName + " :They aren't on that channel");
