@@ -33,7 +33,7 @@ public:
 		if (!channel)
 		{
 			server.log(LOG_WARNING, std::string(channelName) + " does not exist");
-			client.numericReply(IRC::ERR_NOSUCHNICK, std::string(channelName) + " :No such channel");
+			client.numericReply(IRC::ERR_NOSUCHCHANNEL, std::string(channelName) + " :No such channel");
 			return;
 		}
 		if (!channel->hasClient(client.getSocket()))
@@ -57,7 +57,7 @@ public:
 
 		channel->addInvite(*invitedClient);
 		client.numericReply(IRC::RPL_INVITING, std::string(invitedNick) + " " + std::string(channelName));
-		std::string msg = ":" + client.getUserPrefix() + " INVITE " + invitedClient->getNickname() + " :" + std::string(channelName);
+		std::string msg = client.getUserPrefix() + " INVITE " + invitedClient->getNickname() + std::string(channelName);
 		invitedClient->sendMessage(msg);
 		server.log(LOG_INFO, client.getNickname() + " invited " + std::string(invitedNick) + " to " + std::string(channelName));
 	}

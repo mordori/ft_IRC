@@ -22,7 +22,7 @@ public:
 
 		std::string_view name = params[0];
 		std::string_view clientList = params[1];		
-		std::string comment = client.getNickname();
+		std::string comment = "";
 		if (params.size() > 2)
 			comment = std::string(params[2]);
 		std::string channelName = std::string(name);
@@ -30,7 +30,7 @@ public:
 		if (!channel)
 		{
 			server.log(LOG_WARNING, channelName + " does not exist");
-			client.numericReply(IRC::ERR_NOSUCHNICK, channelName + " :No such channel");
+			client.numericReply(IRC:: ERR_NOSUCHCHANNEL, channelName + " :No such channel");
 			return;
 		}
 		if (!channel->hasClient(client.getSocket()))
@@ -60,7 +60,7 @@ public:
 				continue;
 			}
 			
-			std::string msg = ":" + client.getUserPrefix() + " KICK " + channelName + " " + targetNick + " :" + comment;
+			std::string msg = client.getUserPrefix() + " KICK " + channelName + " " + targetNick + " :" + comment;
 			for (auto& [socket, member] : channel->getMembers())
 			{
 				member->sendMessage(msg);
