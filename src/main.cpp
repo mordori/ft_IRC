@@ -4,9 +4,14 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <signal.h>
 
 #include "../inc/Server.hpp"
 #include "../inc/Utils.hpp"
+
+void signalHandler(int sig) {
+    std::cout << "Interrupt handle " << sig << std::endl;
+}
 
 // lsof -i :<port>
 int main(int argc, char** argv)
@@ -40,6 +45,9 @@ int main(int argc, char** argv)
 		std::cerr << "Failed to setup server.\n";
 		return 1;
 	}
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
+	signal(SIGTSTP, signalHandler);
 	mastermind.startServer();
 	return 0;
 }
