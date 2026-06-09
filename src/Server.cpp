@@ -151,10 +151,22 @@ bool Server::serverAccept()
 	return true;
 }
 
+void Server::signalHandler(int sig) {
+    if (sig == SIGINT || sig == SIGTERM || sig == SIGTSTP)
+	{
+		_running = 0;
+	}
+}
+volatile sig_atomic_t	Server::_running = 1;
+
 void Server::startServer()
 {
+	signal(SIGINT, Server::signalHandler);
+    signal(SIGTERM, Server::signalHandler);
+    signal(SIGTSTP, Server::signalHandler);
+
 	std::array<struct epoll_event, IRC::EVENT_QUEUE_SIZE> events{};
-	while (true)
+	while (_running)
 	{
 		int numEvents = epoll_wait(_epollFd, events.data(), events.size(), -1);
 		if (numEvents == -1)

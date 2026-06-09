@@ -6,6 +6,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <fstream>
+#include <signal.h>
 
 #include "Commands/ICommand.hpp"
 
@@ -28,6 +29,7 @@ private:
 	std::unordered_map<std::string, std::unique_ptr<Channel>> _channels;
 	std::unordered_map<std::string_view, std::unique_ptr<ICommand>> _commands;
 
+	static volatile sig_atomic_t	_running;
 public:
 	Server(std::uint16_t port, std::string password);
 	Server(const Server&) = delete;
@@ -58,5 +60,8 @@ public:
 	void removeChannel(const std::string& name);
 	const std::unordered_map<std::string, std::unique_ptr<Channel>>& getAllChannels() const { return _channels; }
 	Client* findClient(const std::string& name);
+
+	static void signalHandler(int sig);
+
 
 };
