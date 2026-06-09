@@ -24,7 +24,7 @@ public:
 		std::string_view clientList = params[1];		
 		std::string comment = "";
 		if (params.size() > 2)
-			comment = std::string(params[2]);
+			comment = " :" + std::string(params[2]);
 		std::string channelName = std::string(name);
 		Channel* channel = server.findChannel(channelName);
 		if (!channel)
@@ -60,7 +60,7 @@ public:
 				continue;
 			}
 			
-			std::string msg = client.getUserPrefix() + " KICK " + channelName + " " + targetNick + " :" + comment;
+			std::string msg = client.getUserPrefix() + " KICK " + channelName + " " + targetNick + comment;
 			for (auto& [socket, member] : channel->getMembers())
 			{
 				member->sendMessage(msg);
