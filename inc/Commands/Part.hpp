@@ -50,6 +50,8 @@ public:
 			client.leaveChannel(channel);
 			channel->removeMember(client.getSocket());
 			server.log(LOG_INFO, client.getNickname() + ": [PART] Leaving channel " + channel->getChannelName() + reason);
+			if (channel->getMemberSize() == 0)
+				server.removeChannel(channel->getChannelName());
 		}
 	}
 };
