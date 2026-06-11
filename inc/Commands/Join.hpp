@@ -51,6 +51,8 @@ public:
 					member->sendMessage(msg);
 				channel->removeMember(client.getSocket());
 				server.log(LOG_INFO, client.getNickname() + " left channel " + channel->getName());
+				if (channel->getMemberSize() == 0)
+					server.removeChannel(channel->getChannelName());
 			}
 			client.clearChannels();
 			return;

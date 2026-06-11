@@ -24,7 +24,11 @@ public:
 		{
 			server.broadcastToChannels(client, broadcastMsg);
 			for (Channel* channel : clientChannels)
+			{
 				channel->removeMember(client.getSocket());
+				if (channel->getMemberSize() == 0)
+					server.removeChannel(channel->getChannelName());
+			}
 			client.clearChannels();
 		}
 
