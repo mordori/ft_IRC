@@ -42,6 +42,7 @@ public:
 		// JOIN 0 without a '#' prefix (Part all channels)
 		if (params[0] == "0")
 		{
+			std::vector<std::string>	emptyChannels;
 			for (auto& [name, channel] : server.getAllChannels())
 			{
 				if (!channel->hasClient(client.getSocket()))
@@ -52,8 +53,10 @@ public:
 				channel->removeMember(client.getSocket());
 				server.log(LOG_INFO, client.getNickname() + " left channel " + channel->getName());
 				if (channel->getMemberSize() == 0)
-					server.removeChannel(channel->getChannelName());
+					emptyChannels.push_back(channel->getChannelName());
 			}
+			for (auto channelToDelete : emptyChannels)
+				server.removeChannel(channelToDelete);
 			client.clearChannels();
 			return;
 		}

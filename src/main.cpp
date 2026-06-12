@@ -4,7 +4,6 @@
 #include <string>
 #include <string_view>
 #include <system_error>
-#include <signal.h>
 
 #include "../inc/Server.hpp"
 #include "../inc/Utils.hpp"

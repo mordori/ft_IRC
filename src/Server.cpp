@@ -152,7 +152,7 @@ bool Server::serverAccept()
 }
 
 void Server::signalHandler(int sig) {
-    if (sig == SIGINT || sig == SIGTERM || sig == SIGTSTP)
+    if (sig == SIGINT || sig == SIGTERM)
 	{
 		_running = 0;
 	}
@@ -163,7 +163,6 @@ void Server::startServer()
 {
 	signal(SIGINT, Server::signalHandler);
     signal(SIGTERM, Server::signalHandler);
-    signal(SIGTSTP, Server::signalHandler);
 
 	std::array<struct epoll_event, IRC::EVENT_QUEUE_SIZE> events{};
 	while (_running)
