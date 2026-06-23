@@ -9,21 +9,23 @@
 #include <unistd.h>
 
 #include <array>
+#include <csignal>
 #include <cstddef>
 #include <cstdint>
+#include <ctime>
+#include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <span>
+#include <sstream>
 #include <string>
 #include <string_view>
-#include <utility>
-#include <sstream>
-#include <iomanip>
-#include <ctime>
 #include <unordered_set>
+#include <utility>
 
-#include "../inc/Client.hpp"
 #include "../inc/Channel.hpp"
+#include "../inc/Client.hpp"
 #include "../inc/CommandRequest.hpp"
 #include "../inc/Commands/Invite.hpp"
 #include "../inc/Commands/Join.hpp"
@@ -40,7 +42,10 @@
 #include "../inc/Utils.hpp"
 
 Server::Server(std::uint16_t port, std::string password)
-	: _serverSocket{ -1 }, _epollFd{ -1 }, _port{ port }, _password{ std::move(password) }
+	: _serverSocket{ -1 }
+	, _epollFd{ -1 }
+	, _port{ port }
+	, _password{ std::move(password) }
 {
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
@@ -71,7 +76,7 @@ bool Server::setupServer()
 		std::cerr << "Cannot open log file\n";
 		return false;
 	}
-	
+
 	_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverSocket == -1)
 		return false;
@@ -108,8 +113,7 @@ bool Server::setupServer()
 		log(LOG_INFO, "Server started successfully!");
 		return true;
 	}
-	else
-		return false;
+	return false;
 }
 
 bool Server::serverAccept()
@@ -117,8 +121,9 @@ bool Server::serverAccept()
 	sockaddr_in clientAddr{};
 	socklen_t len = sizeof(clientAddr);
 
-	int clientFd = accept(_serverSocket, reinterpret_cast<sockaddr*>(&clientAddr),
-						  &len);  // added reinterpret_cast to make casting safer and more explicit
+	int clientFd = accept(_serverSocket,
+		reinterpret_cast<sockaddr*>(&clientAddr),
+		&len);	// added reinterpret_cast to make casting safer and more explicit
 	if (clientFd == -1)
 	{
 		log(LOG_ERROR, "Failed to accept connection");
@@ -151,18 +156,17 @@ bool Server::serverAccept()
 	return true;
 }
 
-void Server::signalHandler(int sig) {
-    if (sig == SIGINT || sig == SIGTERM)
-	{
+void Server::signalHandler(int sig)
+{
+	if (sig == SIGINT || sig == SIGTERM)
 		_running = 0;
-	}
 }
-volatile sig_atomic_t	Server::_running = 1;
+volatile sig_atomic_t Server::_running = 1;
 
 void Server::startServer()
 {
 	signal(SIGINT, Server::signalHandler);
-    signal(SIGTERM, Server::signalHandler);
+	signal(SIGTERM, Server::signalHandler);
 
 	std::array<struct epoll_event, IRC::EVENT_QUEUE_SIZE> events{};
 	while (_running)
@@ -185,7 +189,9 @@ void Server::startServer()
 						log(LOG_WARNING, "Adding new connection failed");
 				}
 				else if (_clients.contains(fd))
+				{
 					_clients[fd]->receiveBytes();
+				}
 			}
 			if (event.events & EPOLLOUT)
 			{
@@ -198,44 +204,34 @@ void Server::startServer()
 					_clients[fd]->setDisconnect(true);
 			}
 			if (_clients.contains(fd) && _clients[fd]->isDisconnected())
-			{
 				removeClient(fd);
-			}
 		}
 	}
 }
 
-void	Server::log(int logLvl, const std::string& msg) {
+void Server::log(int logLvl, const std::string& msg)
+{
 	std::string type;
 	switch (logLvl)
 	{
-		case LOG_INFO:
-			type = "INFO";
-			break;
-		case LOG_WARNING:
-			type = "WARNING";
-			break;
-		case LOG_ERROR:
-			type = "ERROR";
-			break;
-		case LOG_DEBUG:
-			type = "DEBUG";
-			break;
-		default:
-			type = "OTHER";
+		case LOG_INFO: type = "INFO"; break;
+		case LOG_WARNING: type = "WARNING"; break;
+		case LOG_ERROR: type = "ERROR"; break;
+		case LOG_DEBUG: type = "DEBUG"; break;
+		default: type = "OTHER";
 	}
 	auto now = std::time(nullptr);
-    auto local = *std::localtime(&now);
-    
-	std::cout << std::put_time(&local, "[%H:%M:%S] ") << "[" << type << "]" << " " << msg << std::endl;
+	auto local = *std::localtime(&now);
+
+	std::cout << std::put_time(&local, "[%H:%M:%S] ") << "[" << type << "]" << " " << msg << '\n';
 
 	if (_logFile.is_open())
 	{
-		_logFile << std::put_time(&local, "[%H:%M:%S] ") << "[" << type << "]" << " " << msg << std::endl;	
-		if (msg.compare("Server started successfully!") == 0)
+		_logFile << std::put_time(&local, "[%H:%M:%S] ") << "[" << type << "]" << " " << msg << '\n';
+		if (msg == "Server started successfully!")
 		{
-			std::cout << "\tPort: " << _port << " | Password: " << _password << std::endl;
-			_logFile << "\tPort: " << _port << " | Password: " << _password << std::endl;
+			std::cout << "\tPort: " << _port << " | Password: " << _password << '\n';
+			_logFile << "\tPort: " << _port << " | Password: " << _password << '\n';
 		}
 	}
 }
@@ -280,7 +276,7 @@ void Server::handleRequest(Client& client, std::string_view message)
 	if (auto iter = _commands.find(request.name); iter != _commands.end())
 		iter->second->execute(client, *this, request.params);
 	else
-		log(LOG_ERROR, client.getNickname() + ": Invalid request"); //Need to notify client as well?
+		log(LOG_ERROR, client.getNickname() + ": Invalid request");	 //Need to notify client as well?
 }
 
 void Server::removeClient(int socket)
@@ -313,14 +309,12 @@ std::string_view Server::getHostname()
 bool Server::isNickInUse(std::string_view nick) const
 {
 	for (const auto& pair : _clients)
-	{
 		if (pair.second->getNickname() == nick)
 			return true;
-	}
 	return false;
 }
 
-void Server::registerClient(Client& client)
+void Server::registerClient(Client& client) const
 {
 	if (client.isRegistered())
 		return;
@@ -328,10 +322,15 @@ void Server::registerClient(Client& client)
 	{
 		client.setRegistered(true);
 		client.numericReply(IRC::RPL_WELCOME, ":Welcome to the IRC Network, " + client.getUserPrefix());
-		client.numericReply(IRC::RPL_YOURHOST, ":Your host is " + std::string(IRC::SERVER_NAME) + ", running version " + std::string(IRC::SERVER_VERSION));
+		client.numericReply(
+			IRC::RPL_YOURHOST, ":Your host is " + std::string(IRC::SERVER_NAME) + ", running version " + std::string(IRC::SERVER_VERSION));
 		client.numericReply(IRC::RPL_CREATED, ":This server was created " + getLaunchTime());
-		client.numericReply(IRC::RPL_MYINFO, std::string(IRC::SERVER_NAME) + " " + std::string(IRC::SERVER_VERSION) + " " + std::string(IRC::AVAILABLE_USER_MODES) + " " + std::string(IRC::AVAILABLE_CHANNEL_MODES));
-		client.numericReply(IRC::RPL_ISUPPORT, "NICKLEN=" + std::to_string(IRC::NICKLEN) + " USERLEN=" + std::to_string(IRC::USERLEN) + " CHANNELLEN=" + std::to_string(IRC::CHANNELLEN) + " :are supported by this server");
+		client.numericReply(IRC::RPL_MYINFO,
+			std::string(IRC::SERVER_NAME) + " " + std::string(IRC::SERVER_VERSION) + " " + std::string(IRC::AVAILABLE_USER_MODES) + " " +
+				std::string(IRC::AVAILABLE_CHANNEL_MODES));
+		client.numericReply(IRC::RPL_ISUPPORT,
+			"NICKLEN=" + std::to_string(IRC::NICKLEN) + " USERLEN=" + std::to_string(IRC::USERLEN) +
+				" CHANNELLEN=" + std::to_string(IRC::CHANNELLEN) + " :are supported by this server");
 	}
 }
 
@@ -377,11 +376,7 @@ void Server::removeChannel(const std::string& name)
 Client* Server::findClient(const std::string& name)
 {
 	for (const auto& [socket, clientPtr] : _clients)
-	{
 		if (!clientPtr->getNickname().empty() && clientPtr->getNickname() == name)
-		{
 			return clientPtr.get();
-		}
-	}
 	return nullptr;
 }

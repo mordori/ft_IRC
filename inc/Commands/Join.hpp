@@ -1,13 +1,14 @@
 #pragma once
 
+#include <string>
 #include <string_view>
 #include <vector>
 
+#include "../Channel.hpp"
 #include "../Client.hpp"
 #include "../Server.hpp"
 #include "../Utils.hpp"
 #include "ICommand.hpp"
-
 
 class Join : public ICommand
 {
@@ -17,11 +18,9 @@ private:
 		if (name.empty() || name[0] != '#' || name.length() > IRC::CHANNELLEN)
 			return false;
 		for (char c : name)
-		{
-			 if (c == '\0' || c == '\a' || c == '\r' || c == '\n' || c == ' ' || c == ',' || c == ':')
-            			return false;
-		}
-		return true;		
+			if (c == '\0' || c == '\a' || c == '\r' || c == '\n' || c == ' ' || c == ',' || c == ':')
+				return false;
+		return true;
 	}
 
 public:
@@ -42,20 +41,20 @@ public:
 		// JOIN 0 without a '#' prefix (Part all channels)
 		if (params[0] == "0")
 		{
-			std::vector<std::string>	emptyChannels;
-			for (auto& [name, channel] : server.getAllChannels())
+			std::vector<std::string> emptyChannels;
+			for (const auto& [name, channel] : server.getAllChannels())
 			{
 				if (!channel->hasClient(client.getSocket()))
 					continue;
 				std::string msg = client.getUserPrefix() + " PART " + channel->getName();
-				for (auto& [socket, member] : channel->getMembers())
+				for (const auto& [socket, member] : channel->getMembers())
 					member->sendMessage(msg);
 				channel->removeMember(client.getSocket());
 				server.log(LOG_INFO, client.getNickname() + " left channel " + channel->getName());
 				if (channel->getMemberSize() == 0)
 					emptyChannels.push_back(channel->getChannelName());
 			}
-			for (auto channelToDelete : emptyChannels)
+			for (const auto& channelToDelete : emptyChannels)
 				server.removeChannel(channelToDelete);
 			client.clearChannels();
 			return;
@@ -90,13 +89,13 @@ public:
 				if (channel->isInviteOnly() && !channel->isInvited(client.getSocket()))
 				{
 					server.log(LOG_WARNING, "Channel is invite-only!");
-					client.numericReply(IRC::ERR_INVITEONLYCHAN, std::string(name) + " :Cannot join channel (+i)" );
+					client.numericReply(IRC::ERR_INVITEONLYCHAN, std::string(name) + " :Cannot join channel (+i)");
 					continue;
 				}
 				if (channel->isFull())
 				{
 					server.log(LOG_WARNING, "Channel is full");
-					client.numericReply(IRC::ERR_CHANNELISFULL, std::string(name) + " :Cannot join channel (+l)" );
+					client.numericReply(IRC::ERR_CHANNELISFULL, std::string(name) + " :Cannot join channel (+l)");
 					continue;
 				}
 			}
@@ -109,8 +108,8 @@ public:
 			client.joinChannel(channel);
 			std::string msg = client.getUserPrefix() + " JOIN " + std::string(name);
 			client.sendMessage(msg);
-			server.log(LOG_INFO, client.getNickname() + " joined " + std::string(name));	
-			
+			server.log(LOG_INFO, client.getNickname() + " joined " + std::string(name));
+
 			if (isNew)
 			{
 				channel->addOperator(client);
@@ -119,19 +118,14 @@ public:
 				server.log(LOG_INFO, client.getNickname() + " is an operator of channel " + std::string(name));
 			}
 			if (channel->hasTopic())
-			{
 				client.numericReply(IRC::RPL_TOPIC, std::string(name) + " :" + channel->getTopic());
-			}
-			
-			client.numericReply(IRC::RPL_NAMREPLY, "= " +  std::string(name) + " :" + channel->allMembers());
+
+			client.numericReply(IRC::RPL_NAMREPLY, "= " + std::string(name) + " :" + channel->allMembers());
 			client.numericReply(IRC::RPL_ENDOFNAMES, std::string(name) + " :End of /NAMES list");
 
-			for (auto& [socket, member] : channel->getMembers())
-			{
+			for (const auto& [socket, member] : channel->getMembers())
 				if (member->getSocket() != client.getSocket())
 					member->sendMessage(msg);
-			}
 		}
 	}
 };
-

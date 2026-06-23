@@ -1,12 +1,14 @@
 #pragma once
 
+#include <string>
 #include <string_view>
 #include <vector>
 
+#include "../Channel.hpp"
 #include "../Client.hpp"
 #include "../Server.hpp"
+#include "../Utils.hpp"
 #include "ICommand.hpp"
-#include "Utils.hpp"
 
 class Kick : public ICommand
 {
@@ -21,8 +23,8 @@ public:
 		}
 
 		std::string_view name = params[0];
-		std::string_view clientList = params[1];		
-		std::string comment = "";
+		std::string_view clientList = params[1];
+		std::string comment;
 		if (params.size() > 2)
 			comment = " :" + std::string(params[2]);
 		std::string channelName = std::string(name);
@@ -30,7 +32,7 @@ public:
 		if (!channel)
 		{
 			server.log(LOG_WARNING, channelName + " does not exist");
-			client.numericReply(IRC:: ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+			client.numericReply(IRC::ERR_NOSUCHCHANNEL, channelName + " :No such channel");
 			return;
 		}
 		if (!channel->hasClient(client.getSocket()))
@@ -59,17 +61,15 @@ public:
 				client.numericReply(IRC::ERR_USERNOTINCHANNEL, targetNick + " " + channelName + " :They aren't on that channel");
 				continue;
 			}
-			
+
 			std::string msg = client.getUserPrefix() + " KICK " + channelName + " " + targetNick + comment;
-			for (auto& [socket, member] : channel->getMembers())
-			{
+			for (const auto& [socket, member] : channel->getMembers())
 				member->sendMessage(msg);
-			}
 			channel->removeMember(target->getSocket());
 			target->leaveChannel(channel);
 			server.log(LOG_INFO, client.getNickname() + " kicked " + targetNick + " from " + channelName);
 		}
-		
+
 		if (channel->getMembers().empty())
 		{
 			server.log(LOG_INFO, channelName + " is empty. Removing the channel");

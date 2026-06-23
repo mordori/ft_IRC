@@ -22,6 +22,7 @@ Checks: >
   -bugprone-easily-swappable-parameters,
   -readability-use-anyofallof,
   -modernize-avoid-c-arrays,
+  -readability-function-cognitive-complexity,
 
 
 # FORCE clang-tidy to report warnings found in header files

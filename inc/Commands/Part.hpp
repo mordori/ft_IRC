@@ -1,12 +1,15 @@
 #pragma once
 
+#include <cstddef>
+#include <string>
 #include <string_view>
 #include <vector>
 
+#include "../Channel.hpp"
 #include "../Client.hpp"
-#include "Join.hpp"
+#include "../Server.hpp"
+#include "../Utils.hpp"
 #include "ICommand.hpp"
-#include "Utils.hpp"
 
 class Part : public ICommand
 {
@@ -19,19 +22,19 @@ public:
 			client.numericReply(IRC::ERR_NEEDMOREPARAMS, "PART :Not enough parameters");
 			return;
 		}
-		std::string	reason;
-		if (params.size() > 1) //reason was provided for leaving channel(s)
+		std::string reason;
+		if (params.size() > 1)	//reason was provided for leaving channel(s)
 		{
 			reason = " :";
 			for (size_t i = 1; i < params.size(); i++)
 				reason += std::string(params[i]) + " ";
 			reason.erase(reason.end() - 1);
 		}
-		
+
 		std::string_view paramChannels = params[0];
 		while (!paramChannels.empty())
 		{
-			std::string	channelName = std::string(Utils::split(paramChannels));
+			std::string channelName = std::string(Utils::split(paramChannels));
 			Channel* channel = server.findChannel(channelName);
 			if (!channel)
 			{

@@ -1,11 +1,14 @@
 #pragma once
 
+#include <string>
 #include <string_view>
 #include <vector>
 
+#include "../Channel.hpp"
 #include "../Client.hpp"
+#include "../Server.hpp"
+#include "../Utils.hpp"
 #include "ICommand.hpp"
-#include "Utils.hpp"
 
 class Invite : public ICommand
 {
@@ -24,7 +27,7 @@ public:
 		Client* invitedClient = server.findClient(std::string(invitedNick));
 		if (!invitedClient)
 		{
-			server.log(LOG_WARNING, client.getNickname() + " is not found" );
+			server.log(LOG_WARNING, client.getNickname() + " is not found");
 			client.numericReply(IRC::ERR_NOSUCHNICK, std::string(invitedNick) + " :No such nick");
 			return;
 		}
@@ -44,8 +47,9 @@ public:
 		}
 		if (channel->hasClient(invitedClient->getSocket()))
 		{
-			server.log(LOG_WARNING, invitedClient->getNickname() + " is already on channel!" );
-			client.numericReply(IRC::ERR_USERONCHANNEL, invitedClient->getNickname() + " " + std::string(channelName) + " :is already on channel");
+			server.log(LOG_WARNING, invitedClient->getNickname() + " is already on channel!");
+			client.numericReply(
+				IRC::ERR_USERONCHANNEL, invitedClient->getNickname() + " " + std::string(channelName) + " :is already on channel");
 			return;
 		}
 		if (channel->isInviteOnly() && !channel->isOperator(client.getSocket()))
