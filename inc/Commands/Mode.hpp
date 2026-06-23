@@ -1,28 +1,29 @@
 #pragma once
 
-#include <string_view>
-#include <vector>
+#include <algorithm>
 #include <charconv>
+#include <cstddef>
+#include <string>
+#include <string_view>
+#include <system_error>
+#include <vector>
 
 #include "../Channel.hpp"
 #include "../Client.hpp"
+#include "../Server.hpp"
+#include "../Utils.hpp"
 #include "ICommand.hpp"
 
 class Mode : public ICommand
 {
 private:
-	bool	checkModeStringStart(std::string_view str)
+	static bool checkModeStringStart(std::string_view str) { return str.starts_with('+') || str.starts_with('-'); }
+
+	static bool checkKey(std::string_view str)
 	{
-		if (!(str.starts_with('+') || str.starts_with('-')))
-			return false;
-		return true;
-	}
-	bool	checkKey(std::string_view str)
-	{
-		for (size_t i = 0; i < str.size(); i++) {
-			if (str[i] < 33 || str[i] > 126) //no space or unprintable characters
+		for (char i : str)
+			if (i < 33 || i > 126)	//no space or unprintable characters
 				return false;
-		}
 		return true;
 	}
 
@@ -41,7 +42,7 @@ public:
 			client.sendMessage("[MODE] User modes not supported");
 			return;
 		}
-		
+
 		Channel* channel = server.findChannel(std::string(params[0]));
 		if (!channel)
 		{
@@ -64,7 +65,7 @@ public:
 			return;
 		}
 
-	//Main work: Parse the whole mode string (+ or - itkol) along with mode arguments (tracked with paramIndex)
+		//Main work: Parse the whole mode string (+ or - itkol) along with mode arguments (tracked with paramIndex)
 		std::string_view modeString = params[1];
 		if (!checkModeStringStart(modeString))
 		{
@@ -79,25 +80,25 @@ public:
 			client.numericReply(IRC::ERR_CHANOPRIVSNEEDED, channel->getChannelName() + " :Not channel operator");
 			return;
 		}
-		
-		std::string	appliedModes;
-		std::string	appliedParams;
-		int	AddOrRemove = 0;
-		size_t	paramIndex = 2;
-		for (size_t i = 0; i < modeString.size(); i++)
+
+		std::string appliedModes;
+		std::string appliedParams;
+		int AddOrRemove = 0;
+		std::size_t paramIndex = 2;
+		for (char i : modeString)
 		{
-			if (modeString[i] == '+')
+			if (i == '+')
 			{
-				if (AddOrRemove == 1) //++ or +i+k
+				if (AddOrRemove == 1)  //++ or +i+k
 					continue;
 				AddOrRemove = 1;
-				if (appliedModes.ends_with('-')) //-+
+				if (appliedModes.ends_with('-'))  //-+
 					appliedModes.back() = '+';
 				else
-					appliedModes += modeString[i];
+					appliedModes += i;
 				continue;
 			}
-			else if (modeString[i] == '-')
+			if (i == '-')
 			{
 				if (AddOrRemove == -1)
 					continue;
@@ -105,23 +106,23 @@ public:
 				if (appliedModes.ends_with('+'))
 					appliedModes.back() = '-';
 				else
-					appliedModes += modeString[i];
+					appliedModes += i;
 				continue;
 			}
-			switch (modeString[i])
+			switch (i)
 			{
 				case 'i':
 					channel->setModeInvite(AddOrRemove);
-					appliedModes += modeString[i];
-					server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE i] Modified Invite mode" );
+					appliedModes += i;
+					server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE i] Modified Invite mode");
 					break;
-				
+
 				case 't':
 					channel->setModeTopic(AddOrRemove);
-					appliedModes += modeString[i];
-					server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE t] Modified Topic mode" );
+					appliedModes += i;
+					server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE t] Modified Topic mode");
 					break;
-				
+
 				case 'k':
 					if (AddOrRemove == 1)
 					{
@@ -131,7 +132,7 @@ public:
 							client.numericReply(IRC::ERR_INVALIDKEY, channel->getChannelName() + ": [MODE +k] Key is not well-formed");
 							break;
 						}
-						std::string	pw = std::string(params[paramIndex]);
+						std::string pw = std::string(params[paramIndex]);
 						if (!checkKey(pw))
 						{
 							server.log(LOG_ERROR, client.getNickname() + ": [MODE +k] Invalid key");
@@ -149,18 +150,18 @@ public:
 						channel->removePassword();
 						server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE k] Remove channel key");
 					}
-					appliedModes += modeString[i];
+					appliedModes += i;
 					break;
-				
-				case 'o':
-				{
+
+				case 'o': {
 					if (paramIndex >= params.size())
 					{
-						server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE o] No target user provided");
+						server.log(
+							LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE o] No target user provided");
 						client.numericReply(IRC::ERR_NEEDMOREPARAMS, channel->getChannelName() + " :[MODE o] Need a target");
 						break;
 					}
-					std::string	nick = std::string(params[paramIndex]);
+					std::string nick = std::string(params[paramIndex]);
 					if (!server.isNickInUse(nick))
 					{
 						server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE o] No such nick");
@@ -171,8 +172,10 @@ public:
 					Client* target = channel->retrieveClient(nick);
 					if (!target)
 					{
-						server.log(LOG_ERROR, client.getNickname() + ": [MODE o] Target user " + nick + " not on channel " + channel->getChannelName());
-						client.numericReply(IRC::ERR_USERNOTINCHANNEL, nick + " " + channel->getChannelName() + " :They aren't on that channel");
+						server.log(LOG_ERROR,
+							client.getNickname() + ": [MODE o] Target user " + nick + " not on channel " + channel->getChannelName());
+						client.numericReply(
+							IRC::ERR_USERNOTINCHANNEL, nick + " " + channel->getChannelName() + " :They aren't on that channel");
 						paramIndex++;
 						break;
 					}
@@ -180,33 +183,36 @@ public:
 						channel->addOperator(*target);
 					else if (AddOrRemove == -1)
 						channel->removeOperator(target->getSocket());
-					appliedModes += modeString[i];
+					appliedModes += i;
 					appliedParams += " " + std::string(params[paramIndex]);
 					paramIndex++;
-					server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE] Modify op privilege of " + target->getNickname());
+					server.log(LOG_INFO,
+						client.getNickname() + " " + channel->getChannelName() + ": [MODE] Modify op privilege of " +
+							target->getNickname());
 					break;
 				}
-					
+
 				case 'l':
 					if (AddOrRemove == 1)
 					{
 						if (paramIndex >= params.size())
 						{
-							server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE +l] No number provided");
+							server.log(
+								LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE +l] No number provided");
 							client.numericReply(IRC::ERR_NEEDMOREPARAMS, channel->getChannelName() + " :[MODE +l] Need a number");
 							break;
 						}
 						std::string_view str = params[paramIndex];
-						size_t	num{};
+						size_t num{};
 						auto res = std::from_chars(str.data(), str.data() + str.size(), num);
 						if (res.ec != std::errc{} || res.ptr != str.data() + str.size() || num == 0)
 						{
 							server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE +l] Invalid number");
-							client.numericReply(IRC::ERR_INVALIDMODEPARAM, channel->getChannelName() + " +l " + std::string(str) + " :Invalid number");
+							client.numericReply(
+								IRC::ERR_INVALIDMODEPARAM, channel->getChannelName() + " +l " + std::string(str) + " :Invalid number");
 							break;
 						}
-						if (num > IRC::MAX_CHANNEL_SIZE)
-							num = IRC::MAX_CHANNEL_SIZE;
+						num = std::min(num, IRC::MAX_CHANNEL_SIZE);
 						channel->setMemberLimit(num);
 						appliedParams += " " + std::to_string(num);
 						paramIndex++;
@@ -217,25 +223,25 @@ public:
 						channel->setMemberLimit(IRC::MAX_CHANNEL_SIZE);
 						server.log(LOG_INFO, client.getNickname() + " " + channel->getChannelName() + ": [MODE l] Back to max limit");
 					}
-					appliedModes += modeString[i];
+					appliedModes += i;
 					break;
-				
+
 				default:
-					server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE] Unknown mode " + modeString[i]);
-					client.numericReply(IRC::ERR_UNKNOWNMODE, std::string(1, modeString[i]) + " :is an unknown mode char");
+					server.log(LOG_ERROR, client.getNickname() + " " + channel->getChannelName() + ": [MODE] Unknown mode " + i);
+					client.numericReply(IRC::ERR_UNKNOWNMODE, std::string(1, i) + " :is an unknown mode char");
 					break;
 			}
 		}
 		if (appliedModes.size() >= 2 && appliedModes[1] != '+' && appliedModes[1] != '-')
 		{
-			std::string	broadcastMsg = client.getUserPrefix() + " MODE " + channel->getChannelName() + " " + appliedModes + appliedParams;
+			std::string broadcastMsg = client.getUserPrefix() + " MODE " + channel->getChannelName() + " " + appliedModes + appliedParams;
 			channel->broadcastToMembers(broadcastMsg);
 		}
 	}
 
-	std::string	getModes(Channel* channel)
+	static std::string getModes(Channel* channel)
 	{
-		std::string	modes;
+		std::string modes;
 		if (channel->isInviteOnly())
 			modes += 'i';
 		if (channel->hasTopicRestriction())

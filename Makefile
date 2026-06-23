@@ -44,7 +44,7 @@ all: $(NAME)
 
 $(NAME): $(OBJS)
 	@$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)
-	$(call output)
+	@$(call output)
 
 $(DIR_OBJ)%.o: $(DIR_SRC)%.cpp
 	$(call compile_objs)
@@ -66,7 +66,7 @@ re:
 
 debug:
 	@$(MAKE) fclean
-	@$(MAKE) all OPTS="$(DEBUG)"
+	@$(MAKE) all OPTS="$(DEBUG)" BUILD_TYPE="DEBUG"
 
 .PHONY: all clean fclean re debug
 .SECONDARY: $(OBJS) $(DEPS)
@@ -96,4 +96,7 @@ endef
 define output
 	@echo "$(YELLOW) [✔] $(NAME) created$(COLOR)"
 	@echo "$(GREEN) [/] usage: $(YELLOW)./$(NAME) <port> <password>$(COLOR)";
+	if [ "$(BUILD_TYPE)" = "DEBUG" ]; then \
+		echo "$(YELLOW) [DEBUG]$(COLOR)"; \
+	fi;
 endef

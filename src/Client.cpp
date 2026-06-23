@@ -8,13 +8,10 @@
 #include <array>
 #include <cstddef>
 #include <span>
-#include <sstream>
 #include <string>
 #include <string_view>
 
 #include "../inc/Server.hpp"
-#include "../inc/Utils.hpp"
-#include <iostream>
 Client::~Client()
 {
 	if (_socket != -1)
@@ -24,7 +21,7 @@ Client::~Client()
 void Client::receiveBytes()
 {
 	std::array<char, 1024> buffer{};
-	
+
 	ssize_t bytesReceived{ recv(_socket, buffer.data(), buffer.size(), 0) };
 	if (bytesReceived > 0)
 	{
@@ -43,7 +40,9 @@ void Client::receiveBytes()
 		}
 	}
 	else
+	{
 		this->setDisconnect(true);
+	}
 }
 
 // added "\r\n" - IRC messages should terminated with \r\n (CRLF)
@@ -64,16 +63,18 @@ void Client::sendBytes()
 	}
 	ssize_t bytesSent{ send(_socket, _bufferOut.data(), _bufferOut.size(), 0) };
 	if (bytesSent > 0)
+	{
 		_bufferOut.erase(0, static_cast<std::size_t>(bytesSent));
+	}
 	else
 	{
 		this->setDisconnect(true);
 		return;
 	}
 	if (!_bufferOut.empty())
-  		_server.modEvents(_socket, EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP);
+		_server.modEvents(_socket, EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP);
 	else
-  		_server.modEvents(_socket, EPOLLIN | EPOLLET | EPOLLRDHUP);
+		_server.modEvents(_socket, EPOLLIN | EPOLLET | EPOLLRDHUP);
 }
 
 // : <servername> <numeric> <nickname> <messages>
@@ -81,14 +82,17 @@ void Client::numericReply(std::string_view numeric, std::string_view msg)
 {
 	std::string nick = _nickname.empty() ? "*" : _nickname;
 
-	std::string numericMsg = std::string(":") + std::string(_server.getHostname()) + " " + std::string(numeric) + " " +
-							 std::string(nick) + " " + std::string(msg);
+	std::string numericMsg = std::string(":") + std::string(_server.getHostname()) + " " + std::string(numeric) + " " + std::string(nick) +
+		" " + std::string(msg);
 
 	sendMessage(numericMsg);
 }
 
 // IRC User PrefiX: Nickname!username@hostname (e.g., :Alice!alice@example.com PRIVMSG)
-std::string Client::getUserPrefix() const { return (":" + _nickname + "!" + _username + "@" + _hostname); }
+std::string Client::getUserPrefix() const
+{
+	return (":" + _nickname + "!" + _username + "@" + _hostname);
+}
 
 void Client::joinChannel(Channel* channel)
 {

@@ -1,12 +1,12 @@
 #pragma once
 
+#include <csignal>
 #include <cstdint>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <fstream>
-#include <signal.h>
 
 #include "Commands/ICommand.hpp"
 
@@ -29,7 +29,8 @@ private:
 	std::unordered_map<std::string, std::unique_ptr<Channel>> _channels;
 	std::unordered_map<std::string_view, std::unique_ptr<ICommand>> _commands;
 
-	static volatile sig_atomic_t	_running;
+	static volatile sig_atomic_t _running;
+
 public:
 	Server(std::uint16_t port, std::string password);
 	Server(const Server&) = delete;
@@ -53,7 +54,7 @@ public:
 	std::string_view getHostname();
 	const std::string& getLaunchTime() const { return _launchTime; }
 	bool isNickInUse(std::string_view nick) const;
-	void registerClient(Client& client);
+	void registerClient(Client& client) const;
 	void broadcastToChannels(Client& client, std::string& msg);
 	Channel* createChannel(const std::string& name);
 	Channel* findChannel(const std::string& name);
@@ -62,6 +63,4 @@ public:
 	Client* findClient(const std::string& name);
 
 	static void signalHandler(int sig);
-
-
 };

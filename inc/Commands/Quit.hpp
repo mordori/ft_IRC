@@ -1,9 +1,14 @@
 #pragma once
 
+#include <string>
 #include <string_view>
+#include <unordered_set>
 #include <vector>
 
+#include "../Channel.hpp"
 #include "../Client.hpp"
+#include "../Server.hpp"
+#include "../Utils.hpp"
 #include "ICommand.hpp"
 
 class Quit : public ICommand
@@ -11,15 +16,13 @@ class Quit : public ICommand
 public:
 	void execute(Client& client, Server& server, const std::vector<std::string_view>& params) override
 	{
-		std::string reason = "";
+		std::string reason;
 		if (!params.empty())
-		{
-			for (size_t i = 0; i < params.size(); i++)
-				reason += " " + std::string(params[i]);
-		}
+			for (auto param : params)
+				reason += " " + std::string(param);
 		std::string broadcastMsg = client.getUserPrefix() + " QUIT :Quit:" + reason;
-		
-		std::unordered_set<Channel*>	clientChannels = client.getChannels();
+
+		std::unordered_set<Channel*> clientChannels = client.getChannels();
 		if (!clientChannels.empty())
 		{
 			server.broadcastToChannels(client, broadcastMsg);

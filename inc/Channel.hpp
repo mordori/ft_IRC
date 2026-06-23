@@ -1,10 +1,10 @@
 #pragma once
 
+#include <chrono>
+#include <cstddef>
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <chrono>
-#include <iomanip>
 
 #include "Utils.hpp"
 
@@ -16,31 +16,35 @@ class Channel
 {
 private:
 	std::string _name;
-	std::chrono::system_clock::time_point	_creationTime;
+	std::chrono::system_clock::time_point _creationTime;
 	std::string _topic;
 	std::string _key;
 	bool _inviteOnly = false;
 	bool _privilegeRequired4Topic = false;
-	size_t _memberLimit = IRC::MAX_CHANNEL_SIZE;
-	
+	std::size_t _memberLimit = IRC::MAX_CHANNEL_SIZE;
+
 	std::unordered_map<int, Client*> _members;
 	std::unordered_map<int, Client*> _operators;
-	std::unordered_map<int, Client*> _invited; 
+	std::unordered_map<int, Client*> _invited;
 
 public:
-	Channel(std::string_view name) : _name{ name }, _creationTime{ std::chrono::system_clock::now() } {}
+	Channel(std::string_view name)
+		: _name{ name }
+		, _creationTime{ std::chrono::system_clock::now() }
+	{
+	}
 	Channel(const Channel&) = delete;
 	Channel(Channel&&) = delete;
-	~Channel() = default ;
+	~Channel() = default;
 
 	Channel& operator=(const Channel&) = delete;
 	Channel& operator=(Channel&&) = delete;
 
 	[[nodiscard]] const std::string& getName() const { return _name; }
 	[[nodiscard]] const std::string& getTopic() const { return _topic; }
-	[[nodiscard]] const std::string& getPassword() const { return _key; } 
+	[[nodiscard]] const std::string& getPassword() const { return _key; }
 	[[nodiscard]] const std::unordered_map<int, Client*>& getMembers() const { return _members; }
-	
+
 	bool hasClient(int socket) const;
 	bool hasTopic() const;
 	bool hasTopicRestriction() const;
@@ -54,18 +58,21 @@ public:
 	void addOperator(Client& client);
 	void removeOperator(int socket);
 	bool isFull() const;
-	size_t getMemberSize() const;
+	std::size_t getMemberSize() const;
 	std::string allMembers() const;
-		
-	[[nodiscard]] const std::string& getChannelName() const { return _name; } //dup function, choose either getName() or getChannelName(), then make changes to other files
-	[[nodiscard]] const std::chrono::system_clock::time_point getCreationTime() const { return _creationTime; }
-	std::string	printCreationTime();
-	void	setModeInvite(int AddOrRemove);
-	void	setModeTopic(int AddOrRemove);
-	void	setPassword(const std::string& pw) { _key = pw; }
-	void	removePassword() { _key.clear(); }
-	void	setMemberLimit(size_t num) { _memberLimit = num; }
-	size_t	getMemberLimit() const { return _memberLimit; }
-	Client*	retrieveClient(const std::string& name);
-	void	broadcastToMembers(const std::string& msg);
+
+	[[nodiscard]] const std::string& getChannelName() const
+	{
+		return _name;
+	}  //dup function, choose either getName() or getChannelName(), then make changes to other files
+	[[nodiscard]] std::chrono::system_clock::time_point getCreationTime() const { return _creationTime; }
+	std::string printCreationTime() const;
+	void setModeInvite(int AddOrRemove);
+	void setModeTopic(int AddOrRemove);
+	void setPassword(const std::string& pw) { _key = pw; }
+	void removePassword() { _key.clear(); }
+	void setMemberLimit(std::size_t num) { _memberLimit = num; }
+	std::size_t getMemberLimit() const { return _memberLimit; }
+	Client* retrieveClient(const std::string& name);
+	void broadcastToMembers(const std::string& msg);
 };

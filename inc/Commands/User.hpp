@@ -1,9 +1,13 @@
 #pragma once
 
+#include <string>
 #include <string_view>
 #include <vector>
 
+#include "../Channel.hpp"
 #include "../Client.hpp"
+#include "../Server.hpp"
+#include "../Utils.hpp"
 #include "ICommand.hpp"
 
 class User : public ICommand
@@ -31,14 +35,10 @@ public:
 		}
 		std::string username = std::string(params[0]);
 		std::string_view realname = params[3];
-		if (!username.empty() && username[0] != '~') 
-		{
+		if (!username.empty() && username[0] != '~')
 			username = "~" + username;
-		}
 		if (username.length() > IRC::USERLEN)
-		{
 			username.resize(IRC::USERLEN);
-		}
 		client.setUsername(username);
 		client.setRealname(realname);
 		server.registerClient(client);

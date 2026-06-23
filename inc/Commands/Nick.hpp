@@ -23,10 +23,8 @@ private:
 			return false;
 		const std::string special = "[]{}\\`_-^|";
 		for (char c : nick)
-		{
 			if (!std::isalnum(static_cast<unsigned char>(c)) && special.find(c) == std::string::npos)
 				return false;
-		}
 		return true;
 	}
 
@@ -69,7 +67,7 @@ public:
 			std::string msg = oldPrefix + " NICK :" + std::string(nick);
 			client.sendMessage(msg);
 			server.broadcastToChannels(client, msg);
-			
+
 			std::string readableMsg = "<" + oldNick + "> changed nickname to <" + std::string(nick) + ">";
 			server.log(LOG_INFO, readableMsg);
 		}

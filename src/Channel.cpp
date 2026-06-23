@@ -1,13 +1,21 @@
 #include "../inc/Channel.hpp"
+
+#include <chrono>
+#include <cstddef>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+#include <string>
+
 #include "../inc/Client.hpp"
 
 bool Channel::hasClient(int socket) const
-{ 
+{
 	return _members.contains(socket);
 }
 
 bool Channel::hasTopic() const
-{ 
+{
 	return !_topic.empty();
 }
 
@@ -42,7 +50,7 @@ void Channel::addInvite(Client& client)
 }
 
 void Channel::addMember(Client& client)
-{ 
+{
 	_members[client.getSocket()] = &client;
 }
 
@@ -55,7 +63,7 @@ void Channel::removeMember(int socket)
 
 void Channel::addOperator(Client& client)
 {
-	_operators[client.getSocket()] = &client; 
+	_operators[client.getSocket()] = &client;
 }
 
 void Channel::removeOperator(int socket)
@@ -76,7 +84,7 @@ size_t Channel::getMemberSize() const
 std::string Channel::allMembers() const
 {
 	std::string nameList;
-	
+
 	for (const auto& [socket, member] : _members)
 	{
 		if (!nameList.empty())
@@ -88,15 +96,17 @@ std::string Channel::allMembers() const
 	return nameList;
 }
 
-std::string	Channel::printCreationTime() {
+std::string Channel::printCreationTime() const
+{
 	auto creationTime = std::chrono::system_clock::to_time_t(getCreationTime());
 	auto local = *std::localtime(&creationTime);
-	std::ostringstream	display;
+	std::ostringstream display;
 	display << std::put_time(&local, "%e-%b-%Y %H:%M");
 	return display.str();
 }
 
-void	Channel::setModeInvite(int AddOrRemove) {
+void Channel::setModeInvite(int AddOrRemove)
+{
 	if (AddOrRemove == 1)
 		_inviteOnly = true;
 	else if (AddOrRemove == -1)
@@ -104,28 +114,29 @@ void	Channel::setModeInvite(int AddOrRemove) {
 }
 
 //This channel mode (+t/-t) controls whether channel privileges are required to set the topic
-void	Channel::setModeTopic(int AddOrRemove) {
+void Channel::setModeTopic(int AddOrRemove)
+{
 	if (AddOrRemove == 1)
 		_privilegeRequired4Topic = true;
 	else if (AddOrRemove == -1)
 		_privilegeRequired4Topic = false;
 }
 
-Client*	Channel::retrieveClient(const std::string& name) {
-	for (const auto& pair : _members) {
-        if (pair.second->getNickname() == name) {
-            return pair.second;
-        }
-    }
-    return nullptr;
+Client* Channel::retrieveClient(const std::string& name)
+{
+	for (const auto& pair : _members)
+		if (pair.second->getNickname() == name)
+			return pair.second;
+	return nullptr;
 }
 
-void	Channel::broadcastToMembers(const std::string& msg) {
-	Client* clientPtr;
-	for (const auto& pair : _members) {
+void Channel::broadcastToMembers(const std::string& msg)
+{
+	Client* clientPtr{};
+	for (const auto& pair : _members)
+	{
 		clientPtr = pair.second;
-		if (clientPtr) {
+		if (clientPtr)
 			clientPtr->sendMessage(msg);
-		}
 	}
 }
