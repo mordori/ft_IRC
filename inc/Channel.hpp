@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cstddef>
+#include <ctime>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -9,7 +10,6 @@
 #include "Utils.hpp"
 
 class Server;
-
 class Client;
 
 class Channel
@@ -22,6 +22,8 @@ private:
 	bool _inviteOnly = false;
 	bool _privilegeRequired4Topic = false;
 	std::size_t _memberLimit = IRC::MAX_CHANNEL_SIZE;
+	std::string _topicSetter;
+	std::chrono::system_clock::time_point _topicSetTime;
 
 	std::unordered_map<int, Client*> _members;
 	std::unordered_map<int, Client*> _operators;
@@ -48,6 +50,17 @@ public:
 	bool hasClient(int socket) const;
 	bool hasTopic() const;
 	bool hasTopicRestriction() const;
+
+	[[nodiscard]] const std::string& getTopicSetter() const { return _topicSetter; }
+	[[nodiscard]] std::time_t getTopicSetTime() const { return std::chrono::system_clock::to_time_t(_topicSetTime); }
+
+	void setTopic(const std::string& topic, const std::string& nick)
+	{
+		_topic = topic;
+		_topicSetter = nick;
+		_topicSetTime = std::chrono::system_clock::now();
+	}
+
 	bool hasKey() const;
 	bool isOperator(int socket) const;
 	bool isInviteOnly() const;
