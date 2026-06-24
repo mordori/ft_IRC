@@ -35,6 +35,7 @@ constexpr std::string_view RPL_ENDOFNAMES = "366";
 
 constexpr std::string_view ERR_NOSUCHNICK = "401";
 constexpr std::string_view ERR_NOSUCHCHANNEL = "403";
+constexpr std::string_view ERR_NOORIGIN = "409";
 constexpr std::string_view ERR_UNKNOWNCOMMAND = "421";
 constexpr std::string_view ERR_NONICKNAMEGIVEN = "431";
 constexpr std::string_view ERR_ERRONEUSNICKNAME = "432";
