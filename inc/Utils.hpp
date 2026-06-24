@@ -26,13 +26,16 @@ constexpr std::string_view RPL_ISUPPORT = "005";
 
 constexpr std::string_view RPL_CHANNELMODEIS = "324";
 constexpr std::string_view RPL_CREATIONTIME = "329";
+constexpr std::string_view RPL_NOTOPIC = "331";
 constexpr std::string_view RPL_TOPIC = "332";
+constexpr std::string_view RPL_TOPICWHOTIME = "333";
 constexpr std::string_view RPL_INVITING = "341";
 constexpr std::string_view RPL_NAMREPLY = "353";
 constexpr std::string_view RPL_ENDOFNAMES = "366";
 
 constexpr std::string_view ERR_NOSUCHNICK = "401";
 constexpr std::string_view ERR_NOSUCHCHANNEL = "403";
+constexpr std::string_view ERR_UNKNOWNCOMMAND = "421";
 constexpr std::string_view ERR_NONICKNAMEGIVEN = "431";
 constexpr std::string_view ERR_ERRONEUSNICKNAME = "432";
 constexpr std::string_view ERR_NICKNAMEINUSE = "433";

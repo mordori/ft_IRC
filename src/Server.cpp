@@ -121,9 +121,8 @@ bool Server::serverAccept()
 	sockaddr_in clientAddr{};
 	socklen_t len = sizeof(clientAddr);
 
-	int clientFd = accept(_serverSocket,
-		reinterpret_cast<sockaddr*>(&clientAddr),
-		&len);	// added reinterpret_cast to make casting safer and more explicit
+	// added reinterpret_cast to make casting safer and more explicit
+	int clientFd = accept(_serverSocket, reinterpret_cast<sockaddr*>(&clientAddr), &len);
 	if (clientFd == -1)
 	{
 		log(LOG_ERROR, "Failed to accept connection");
@@ -273,10 +272,16 @@ void Server::handleRequest(Client& client, std::string_view message)
 	CommandRequest request{ message };
 	if (!request.isValid())
 		return;
-	if (auto iter = _commands.find(request.name); iter != _commands.end())
+	auto iter = _commands.find(request.name);
+	if (iter != _commands.end())
+	{
 		iter->second->execute(client, *this, request.params);
+	}
 	else
-		log(LOG_ERROR, client.getNickname() + ": Invalid request");	 //Need to notify client as well?
+	{
+		log(LOG_ERROR, client.getNickname() + ": Invalid request");
+		client.numericReply(IRC::ERR_UNKNOWNCOMMAND, " :Unknown command");
+	}
 }
 
 void Server::removeClient(int socket)

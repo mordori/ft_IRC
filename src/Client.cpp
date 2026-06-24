@@ -12,6 +12,7 @@
 #include <string_view>
 
 #include "../inc/Server.hpp"
+
 Client::~Client()
 {
 	if (_socket != -1)
