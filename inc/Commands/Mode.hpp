@@ -60,7 +60,7 @@ public:
 		if (params.size() == 1)
 		{
 			client.numericReply(IRC::RPL_CHANNELMODEIS, channel->getChannelName() + " " + getModes(channel));
-			client.numericReply(IRC::RPL_CREATIONTIME, channel->getChannelName() + channel->printCreationTime());
+			client.numericReply(IRC::RPL_CREATIONTIME, channel->getChannelName() + " " + channel->printCreationTime());
 			server.log(LOG_INFO, client.getNickname() + ": Mode inquiry for channel " + channel->getChannelName());
 			return;
 		}
