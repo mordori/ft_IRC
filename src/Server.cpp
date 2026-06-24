@@ -286,13 +286,31 @@ void Server::handleRequest(Client& client, std::string_view message)
 
 void Server::removeClient(int socket)
 {
+	if (!_clients.contains(socket))
+		return;
+
 	// Remove the socket from the epoll
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, socket, nullptr);
 
 	// Here inform that the client has left the channel and remove client from the channel and destroy channel if no one left
 
-	if (_clients.contains(socket))
-		_clients.erase(socket);
+	auto it = _clients.find(socket);
+	Client* client = it->second.get();
+	std::unordered_set<Channel*> clientChannels = client->getChannels();
+	std::string broadcastMsg = client->getUserPrefix() + " QUIT :Quit: Disconected";
+	if (!clientChannels.empty())
+	{
+		broadcastToChannels(*client, broadcastMsg);
+		for (Channel* channel : clientChannels)
+		{
+			channel->removeMember(client->getSocket());
+			if (channel->getMemberSize() == 0)
+				removeChannel(channel->getChannelName());
+		}
+		client->clearChannels();
+	}
+
+	_clients.erase(socket);
 
 	log(LOG_INFO, "Client removed");
 }
