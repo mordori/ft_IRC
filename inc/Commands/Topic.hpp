@@ -63,7 +63,7 @@ public:
 		if (channel->hasTopicRestriction() && !channel->isOperator(client.getSocket()))
 		{
 			server.log(LOG_ERROR, client.getNickname() + ": [TOPIC] Client has no privileges to set a topic");
-			client.numericReply(IRC::ERR_CHANOPRIVSNEEDED, channelName + ":You are not channel operator");
+			client.numericReply(IRC::ERR_CHANOPRIVSNEEDED, channelName + " :You are not channel operator");
 			return;
 		}
 
