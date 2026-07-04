@@ -16,23 +16,26 @@ class Quit : public ICommand
 public:
 	void execute(Client& client, Server& server, const std::vector<std::string_view>& params) override
 	{
-		std::string reason;
+		std::string reason = "";
 		if (!params.empty())
 			for (auto param : params)
 				reason += " " + std::string(param);
-		std::string broadcastMsg = client.getUserPrefix() + " QUIT :Quit:" + reason;
-
-		std::unordered_set<Channel*> clientChannels = client.getChannels();
-		if (!clientChannels.empty())
+		if (client.isRegistered())
 		{
-			server.broadcastToChannels(client, broadcastMsg);
-			for (Channel* channel : clientChannels)
+			std::string broadcastMsg = client.getUserPrefix() + " QUIT :Quit:" + reason;
+
+			std::unordered_set<Channel*> clientChannels = client.getChannels();
+			if (!clientChannels.empty())
 			{
-				channel->removeMember(client.getSocket());
-				if (channel->getMemberSize() == 0)
-					server.removeChannel(channel->getChannelName());
+				server.broadcastToChannels(client, broadcastMsg);
+				for (Channel* channel : clientChannels)
+				{
+					channel->removeMember(client.getSocket());
+					if (channel->getMemberSize() == 0)
+						server.removeChannel(channel->getChannelName());
+				}
+				client.clearChannels();
 			}
-			client.clearChannels();
 		}
 
 		if (!reason.empty())
@@ -40,6 +43,7 @@ public:
 		std::string errMsg = "ERROR :Closing connection" + reason;
 		client.sendMessage(errMsg);
 		client.setDisconnect(true);
-		server.log(LOG_INFO, client.getNickname() + " is quitting");
+		std::string name = client.isRegistered() ? client.getNickname() : "Client";
+		server.log(LOG_INFO, name + " is quitting");
 	}
 };

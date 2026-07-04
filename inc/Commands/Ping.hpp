@@ -14,8 +14,6 @@ class Ping : public ICommand
 public:
 	void execute(Client& client, Server& server, const std::vector<std::string_view>& params) override
 	{
-		(void)server;
-
 		if (params.empty())
 		{
 			server.log(LOG_ERROR, client.getNickname() + ": [PING] No origin specified");

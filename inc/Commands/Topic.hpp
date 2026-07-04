@@ -34,13 +34,13 @@ public:
 		if (!channel)
 		{
 			server.log(LOG_ERROR, client.getNickname() + ": [TOPIC] No such channel");
-			client.numericReply(IRC::ERR_NOSUCHCHANNEL, channelName);
+			client.numericReply(IRC::ERR_NOSUCHCHANNEL, channelName + " :No such channel");
 			return;
 		}
 		if (!channel->hasClient(client.getSocket()))
 		{
 			server.log(LOG_ERROR, client.getNickname() + ": [TOPIC] Client is not a member of the channel");
-			client.numericReply(IRC::ERR_NOTONCHANNEL, channelName);
+			client.numericReply(IRC::ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
 			return;
 		}
 

@@ -232,6 +232,12 @@ void Server::log(int logLvl, const std::string& msg)
 			std::cout << "\tPort: " << _port << " | Password: " << _password << '\n';
 			_logFile << "\tPort: " << _port << " | Password: " << _password << '\n';
 		}
+		if (!_logFile)
+		{
+			std::cout << "> Failed to write to log file\n"
+					<< "> Console logging only\n";
+			_logFile.close();
+		}
 	}
 }
 

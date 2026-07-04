@@ -30,6 +30,12 @@ private:
 public:
 	void execute(Client& client, Server& server, const std::vector<std::string_view>& params) override
 	{
+		if (!client.isRegistered())
+		{
+			server.log(LOG_WARNING, "User registration missing");
+			client.numericReply(IRC::ERR_NOTREGISTERED, ":You have not registered");
+			return;
+		}
 		if (params.empty())
 		{
 			server.log(LOG_ERROR, client.getNickname() + ": [MODE] No param provided");
