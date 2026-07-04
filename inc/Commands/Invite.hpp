@@ -15,6 +15,12 @@ class Invite : public ICommand
 public:
 	void execute(Client& client, Server& server, const std::vector<std::string_view>& params) override
 	{
+		if (!client.isRegistered())
+		{
+			server.log(LOG_WARNING, "User registration is required for INVITE command");
+			client.numericReply(IRC::ERR_NOTREGISTERED, ":You have not registered");
+			return;
+		}
 		if (params.size() < 2)
 		{
 			server.log(LOG_WARNING, "Not enough parameters for INVITE command");

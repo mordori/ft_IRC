@@ -16,13 +16,19 @@ class Part : public ICommand
 public:
 	void execute(Client& client, Server& server, const std::vector<std::string_view>& params) override
 	{
+		if (!client.isRegistered())
+		{
+			server.log(LOG_WARNING, "User registration missing");
+			client.numericReply(IRC::ERR_NOTREGISTERED, ":You have not registered");
+			return;
+		}
 		if (params.empty())
 		{
 			server.log(LOG_ERROR, client.getNickname() + ": [PART] No param provided");
 			client.numericReply(IRC::ERR_NEEDMOREPARAMS, "PART :Not enough parameters");
 			return;
 		}
-		std::string reason;
+		std::string reason = "";
 		if (params.size() > 1)	//reason was provided for leaving channel(s)
 		{
 			reason = " :";
