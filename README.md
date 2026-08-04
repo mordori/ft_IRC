@@ -150,9 +150,9 @@ ft-IRC/
 
 | Author | GitHub |
 |--------|--------|
-| **myli-pen** | [@myli-pen](https://github.com/myli-pen) |
-| **hyunjkim** | [@hyunjkim](https://github.com/hyunjkim) |
-| **gita** | [@gita](https://github.com/gita) |
+| **myli-pen** | [@Mika](https://github.com/mordori) |
+| **hyunjkim** | [@Jin](https://github.com/kkzzbb/hyunjkim) |
+| **gita** | [@Giang](https://github.com/Kjngita) |
 
 ---
 
