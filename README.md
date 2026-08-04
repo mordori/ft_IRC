@@ -153,7 +153,7 @@ ft-IRC/
 | Author | GitHub |
 |--------|--------|
 | **myli-pen** | [@Mika](https://github.com/mordori) |
-| **hyunjkim** | [@Jean](https://github.com/kkzzbb/hyunjkim) |
+| **hyunjkim** | [@Jean](https://github.com/kkzzbb) |
 | **gita** | [@Giang](https://github.com/Kjngita) |
 
 ---
