@@ -25,7 +25,7 @@
 
 ## About
 
-**ft-IRC** is a fully functional IRC (Internet Relay Chat) server written from scratch. This project was developed as part of the 42 curriculum to deepen understanding of networking, socket programming, and client-server architecture. The server handles multiple simultaneous clients, supports channel operations, and implements core IRC protocol commands.
+**ft-IRC** is a functional IRC (Internet Relay Chat) server written from scratch. This project was developed as part of the 42 curriculum to deepen understanding of networking, socket programming, and client-server architecture. The server handles multiple simultaneous clients, supports channel operations, and implements core IRC protocol commands.
 
 ---
 
@@ -36,10 +36,10 @@
 - **Operator privileges** – Channel operators with kick, invite, topic, and mode management
 - **Core IRC commands** – Full implementation of essential IRC commands:
   - Connection: `NICK`, `USER`, `PASS`, `QUIT`
-  - Messaging: `PRIVMSG`, `NOTICE`
+  - Messaging: `PRIVMSG`
   - Channels: `JOIN`, `PART`, `TOPIC`, `INVITE`, `KICK`
-  - Modes: `MODE` (user and channel modes)
-  - Utilities: `PING`, `PONG`
+  - Modes: `MODE` (channel modes)
+  - Utilities: `PING` (and reply with `PONG`)
 - **Logging system** – Comprehensive server activity logging
 - **Client registration guard** – Ensures proper client authentication flow
 - **Signal handling** – Graceful shutdown on interrupt signals
@@ -52,7 +52,7 @@
 |-----------|------------|
 | **Language** | C++20 |
 | **Build System** | Make |
-| **Networking** | BSD Sockets (non-blocking I/O) |
+| **Networking** | Socket programming (non-blocking I/O) |
 | **Standard Library** | STL containers and algorithms |
 | **Code Quality** | clang-format, clang-tidy, clangd |
 
@@ -122,26 +122,28 @@ irc <host> <port> <password>
 
 ```
 ft-IRC/
-├── inc/                    # Header files
+├── inc/					# Header files
+│   ├── Commands/
+│   │   ├── ICommand.hpp	# Command interface
+│   │   ├── Invite.hpp
+│   │   ├── Join.hpp
+│   │   ├── Kick.hpp
+│   │   └── ...
 │   ├── Channel.hpp
 │   ├── Client.hpp
+│   ├── CommandRequest.hpp
 │   ├── Server.hpp
-│   └── ...
-├── src/                    # Source files
-│   ├── main.cpp
-│   ├── Server.cpp
+│   └── Utils.hpp
+├── src/					# Source files
 │   ├── Channel.cpp
 │   ├── Client.cpp
-│   ├── commands/           # Command implementations
-│   │   ├── Nick.cpp
-│   │   ├── Join.cpp
-│   │   ├── Privmsg.cpp
-│   │   └── ...
-│   └── ...
-├── Makefile                # Build configuration
-├── .clang-format           # Code formatting rules
-├── .clang-tidy             # Static analysis rules
-└── .clangd                 # Language server configuration
+│   ├── CommandRequest.cpp
+│   ├── Server.cpp
+│   └── main.cpp
+├── Makefile				# Build configuration
+├── .clang-format			# Code formatting rules
+├── .clang-tidy				# Static analysis rules
+└── .clangd					# Language server configuration
 ```
 
 ---
@@ -151,7 +153,7 @@ ft-IRC/
 | Author | GitHub |
 |--------|--------|
 | **myli-pen** | [@Mika](https://github.com/mordori) |
-| **hyunjkim** | [@Jin](https://github.com/kkzzbb/hyunjkim) |
+| **hyunjkim** | [@Jean](https://github.com/kkzzbb/hyunjkim) |
 | **gita** | [@Giang](https://github.com/Kjngita) |
 
 ---
